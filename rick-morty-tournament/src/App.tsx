@@ -472,7 +472,7 @@ function App() {
 
           <div className="home-content">
             <div className="logo-area">
-              <div className="home-kicker">TRETA MULTIVERSAL EM CURSO</div>
+              <div className="home-kicker">TRETA MULTIVERSAL</div>
               <img
                 src="/Rick and Morty logo sticker design.png"
                 alt="Rick & Morty"
