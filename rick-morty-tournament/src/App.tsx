@@ -2,110 +2,20 @@ import { useState, useCallback, useEffect } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 import { HomeMenuButton } from "./components/HomeMenuButton";
-
-interface Character {
-  id: number;
-  name: string;
-  image: string;
-  status: string;
-  species: string;
-  episode: string[];
-  atk: number;
-  def: number;
-  hp: number;
-  maxHp: number;
-  deck: Card[];
-  currentHp?: number;
-}
-
-interface Card {
-  name: string;
-  type: string;
-  cd: number;
-  state: string;
-  used: boolean;
-  duration?: number;
-  hp?: number;
-}
-
-interface Match {
-  p1: Character;
-  p2: Character;
-  winner: number | null;
-}
-
-interface Gimmick {
-  name: string;
-  cost: number;
-  effect: string;
-}
-
-const CARDS_POOL: Record<string, Card[]> = {
-  Rick: [
-    { name: "Portal Gun", type: "Dimensional", cd: 6, state: "available", used: false },
-    { name: "Mega Seeds", type: "Buff", cd: 4, state: "available", used: false, duration: 2 },
-    { name: "Neutrino Bomb", type: "Ataque", cd: 8, state: "available", used: false },
-    { name: "Flask", type: "Buff", cd: 2, state: "available", used: false },
-  ],
-  Morty: [
-    { name: "Mecha Suit", type: "Campo", cd: 5, state: "available", used: false, hp: 80 },
-    { name: "Meeseeks Box", type: "Buff", cd: 5, state: "available", used: false },
-    { name: "Apagador", type: "Dimensional", cd: 4, state: "available", used: false },
-    { name: "Robô Manteiga", type: "Buff", cd: 1, state: "available", used: false },
-  ],
-  Default: [
-    { name: "Plumbus", type: "Buff", cd: 1, state: "available", used: false },
-    { name: "AntiGravidade", type: "Defesa", cd: 1, state: "available", used: false },
-    { name: "Scanner", type: "Buff", cd: 2, state: "available", used: false },
-    { name: "Granada", type: "Ataque", cd: 3, state: "available", used: false },
-  ],
-};
-
-const GIMMICKS: Gimmick[] = [
-  { name: "Emissor", cost: 50, effect: "Falha carta" },
-  { name: "Ampulheta", cost: 75, effect: "+25 ATK" },
-  { name: "Microfone", cost: 30, effect: "Revela carta" },
-  { name: "Serum", cost: 100, effect: "Altera aleatório" },
-];
-
-const MAX_TURNS = 8;
-const TOURNAMENT_LOADING_LINES = [
-  "Varrendo realidades em busca dos seres menos confiáveis do multiverso...",
-  "Puxando competidores direto de portais que claramente não são seguros...",
-  "Convertendo caos interdimensional em cartas prontas para a pancadaria...",
-  "Selecionando integrantes com potencial máximo para causar problema...",
-];
-
-
-function wait(ms: number) {
-  return new Promise(resolve => window.setTimeout(resolve, ms));
-}
-
-function getCardType(char: Character): string {
-  const name = char.name.toLowerCase();
-  if (name.includes("rick") && !name.includes("morty")) return "Rick";
-  if (name.includes("morty")) return "Morty";
-  return "Default";
-}
-
-function generateStats(char: Character): { atk: number; def: number; hp: number } {
-  const episodes = char.episode?.length || 1;
-  const type = getCardType(char);
-  let atk = 30 + Math.min(episodes, 50);
-  let def = 20 + Math.min(Math.floor(episodes / 2), 20);
-  let hp = 80 + Math.min(episodes, 40);
-  if (type === "Rick") { atk += 30; hp += 20; }
-  return { atk, def, hp };
-}
-
-function generateDeck(char: Character): Card[] {
-  const type = getCardType(char);
-  const pool = CARDS_POOL[type] || CARDS_POOL.Default;
-  return pool.map(c => ({ ...c }));
-}
+import { TournamentLoadingScreen } from "./components/TournamentLoadingScreen";
+import { useTournamentLoading } from "./hooks/useTournamentLoading";
+import {
+  buildTournamentData,
+  generateDeck,
+  GIMMICKS,
+  getCardType,
+  MAX_TURNS,
+  TOURNAMENT_LOADING_LINES,
+} from "./lib/tournament";
+import type { Card, Character, Gimmick, Match, TournamentScreen } from "./lib/tournament";
 
 function App() {
-  const [screen, setScreen] = useState<string>("home");
+  const [screen, setScreen] = useState<TournamentScreen>("home");
   const [flurbos, setFlurbos] = useState(500);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [bracket, setBracket] = useState<Match[]>([]);
@@ -121,9 +31,13 @@ function App() {
   const [battleLog, setBattleLog] = useState<string[]>([]);
   const [battleKey, setBattleKey] = useState(0);
   const [champion, setChampion] = useState<Character | null>(null);
-  const [loadingRoster, setLoadingRoster] = useState<Array<Character | null>>([]);
-  const [loadingLineIndex, setLoadingLineIndex] = useState(0);
-  const [loadingReady, setLoadingReady] = useState(false);
+  const {
+    currentLoadingLine,
+    loadingReady,
+    loadingRoster,
+    resetLoadingState,
+    startLoadingSequence,
+  } = useTournamentLoading(screen, TOURNAMENT_LOADING_LINES);
 
   const log = useCallback((msg: string) => {
     setBattleLog(prev => [...prev, msg]);
@@ -137,75 +51,30 @@ function App() {
     };
   }, [screen]);
 
-  useEffect(() => {
-    if (screen !== "loading-tournament") {
-      setLoadingLineIndex(0);
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      setLoadingLineIndex(prev => (prev + 1) % TOURNAMENT_LOADING_LINES.length);
-    }, 1700);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [screen]);
-
-  const playTournamentLoading = useCallback(async (chars: Character[]) => {
-    setLoadingRoster(Array.from({ length: 8 }, () => null));
-    setLoadingLineIndex(0);
-    setLoadingReady(false);
-    setScreen("loading-tournament");
-
-    for (const [index, character] of chars.slice(0, 8).entries()) {
-      await wait(180);
-      setLoadingRoster(prev => prev.map((item, itemIndex) => (
-        itemIndex === index ? character : item
-      )));
-    }
-
-    await wait(220);
-    setLoadingReady(true);
+  const prepareTournament = useCallback(async () => {
+    const res = await fetch("https://rickandmortyapi.com/api/character?limit=16");
+    const data = await res.json();
+    return buildTournamentData(data.results as Character[]);
   }, []);
 
-  const startTournament = async () => {
+  const startTournament = useCallback(async () => {
+    resetLoadingState();
+
     try {
-      const res = await fetch("https://rickandmortyapi.com/api/character?limit=16");
-      const data = await res.json();
-      let chars: Character[] = data.results;
+      const { characters: preparedCharacters, bracket: preparedBracket } = await prepareTournament();
 
-      chars = chars.map(c => {
-        const stats = generateStats(c as unknown as Character);
-        return {
-          ...c,
-          ...stats,
-          maxHp: stats.hp,
-          deck: generateDeck(c as unknown as Character),
-        } as Character;
-      });
-
-      for (let i = chars.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [chars[i], chars[j]] = [chars[j], chars[i]];
-      }
-
-      const newBracket: Match[] = [];
-      for (let i = 0; i < 16; i += 2) {
-        newBracket.push({ p1: chars[i], p2: chars[i + 1], winner: null });
-      }
-
-      setCharacters(chars);
-      setBracket(newBracket);
+      setCharacters(preparedCharacters);
+      setBracket(preparedBracket);
       setCurrentMatch(0);
       setTournamentBet(null);
       setTournamentBetAmount(0);
-      await playTournamentLoading(chars);
+      startLoadingSequence(preparedCharacters);
+      setScreen("loading-tournament");
     } catch (e) {
       console.error(e);
       alert("Erro ao carregar personagens");
     }
-  };
+  }, [prepareTournament, resetLoadingState, startLoadingSequence]);
 
   const placeTournamentBet = () => {
     if (!tournamentBet) {
@@ -434,35 +303,33 @@ function App() {
 
   return (
     <div className="app-shell">
-      <div className="custom-titlebar">
-        <div className="titlebar-drag" data-tauri-drag-region>
-          <span className="titlebar-title">RICK AND MORTY</span>
-        </div>
-        <div className="titlebar-right">
-          <button
-            className="titlebar-btn minimize"
-            onClick={() => getCurrentWindow().minimize()}
-            title="Minimize"
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12"><rect y="5" width="12" height="2" fill="currentColor"/></svg>
-          </button>
-          <button
-            className="titlebar-btn maximize"
-            onClick={() => getCurrentWindow().toggleMaximize()}
-            title="Maximize"
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
-          </button>
-          <button 
-            className="titlebar-btn close" 
-            onClick={() => getCurrentWindow().close()}
-            title="Close"
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="2"/></svg>
-          </button>
-        </div>
+      <div className="window-drag-region" data-tauri-drag-region aria-hidden="true" />
+      <div className="window-controls">
+        <button
+          className="window-control-btn"
+          onClick={() => getCurrentWindow().minimize()}
+          title="Minimize"
+          aria-label="Minimize window"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12"><rect y="5" width="12" height="2" fill="currentColor"/></svg>
+        </button>
+        <button
+          className="window-control-btn"
+          onClick={() => getCurrentWindow().toggleMaximize()}
+          title="Maximize"
+          aria-label="Maximize window"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
+        </button>
+        <button
+          className="window-control-btn window-control-btn-close"
+          onClick={() => getCurrentWindow().close()}
+          title="Close"
+          aria-label="Close window"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="2"/></svg>
+        </button>
       </div>
-
       <main className={`app ${screen === "home" || screen === "loading-tournament" ? "app-home" : ""}`}>
 
 {screen === "home" && (
@@ -499,58 +366,14 @@ function App() {
       )}
 
       {screen === "loading-tournament" && (
-        <div className="screen tournament-loading-screen">
-          <div className="tournament-loading-bg" />
-          <div className="tournament-loading-portal" />
-          <img
-            className="loading-corner-logo"
-            src="/Rick and Morty logo sticker design.png"
-            alt="Rick & Morty"
-          />
-
-          <div className="tournament-loading-copy">
-            <div className="tournament-loading-eyebrow">Treta Multiversal em Curso</div>
-            <h2>Convocando os integrantes da bagunca interdimensional</h2>
-            {!loadingReady && <p>{TOURNAMENT_LOADING_LINES[loadingLineIndex]}</p>}
-          </div>
-
-          <div className="transport-grid">
-            {loadingRoster.map((character, index) => (
-              <div
-                key={character ? character.id : `placeholder-${index}`}
-                className={`transport-card ${character ? "is-arriving" : "is-placeholder"}`}
-                style={{ animationDelay: `${index * 0.12}s` }}
-              >
-                <div className="transport-card-frame">
-                  {character ? (
-                    <>
-                      <img src={character.image} alt={character.name} />
-                      <div className="transport-card-meta">
-                        <span>{character.name}</span>
-                        <small>{character.species}</small>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="transport-card-placeholder">
-                      <div className="placeholder-portal" />
-                      <span>Materializando...</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className={`loading-actions ${loadingReady ? "is-visible" : ""}`}>
-            <HomeMenuButton
-              variant="portal"
-              onClick={() => setScreen("bracket")}
-              disabled={!loadingReady}
-            >
-              Continuar
-            </HomeMenuButton>
-          </div>
-        </div>
+        <TournamentLoadingScreen
+          loadingLine={currentLoadingLine}
+          loadingReady={loadingReady}
+          loadingRoster={loadingRoster}
+          loadedCount={loadingRoster.filter(Boolean).length}
+          totalCount={loadingRoster.length}
+          onContinue={() => setScreen("bracket")}
+        />
       )}
 
       {screen === "bracket" && (
@@ -591,7 +414,8 @@ function App() {
           <button
             className="btn"
             onClick={() => {
-              void playTournamentLoading(characters);
+              startLoadingSequence(characters);
+              setScreen("loading-tournament");
             }}
             style={{ marginLeft: 12 }}
           >

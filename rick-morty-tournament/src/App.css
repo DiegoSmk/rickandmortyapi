@@ -26,6 +26,13 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img,
+svg {
+  -webkit-user-drag: none;
 }
 
 html,
@@ -45,6 +52,62 @@ body {
 
 body.home-body {
   background: url('/Alien world through swirling portal.png') center center / cover no-repeat fixed;
+}
+
+.app-shell {
+  position: relative;
+  height: 100%;
+}
+
+.window-drag-region {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 150px;
+  height: 40px;
+  z-index: 999;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.window-controls {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.window-control-btn {
+  width: 38px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(8, 8, 15, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.window-control-btn:hover {
+  background: rgba(18, 18, 31, 0.78);
+  border-color: rgba(184, 255, 46, 0.35);
+  color: var(--green-glow);
+  transform: translateY(-1px);
+}
+
+.window-control-btn-close:hover {
+  background: rgba(255, 59, 59, 0.88);
+  border-color: rgba(255, 59, 59, 0.92);
+  color: white;
 }
 
 *::-webkit-scrollbar {
@@ -115,6 +178,7 @@ body::-webkit-scrollbar-track-piece {
   width: 100%;
   max-width: none;
   padding: 0;
+  overflow: hidden;
 }
 
 .app-shell {
@@ -693,7 +757,7 @@ body::-webkit-scrollbar-track-piece {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.25);
-  outline: 7px solid rgba(0, 0, 0, 0.42);
+  outline: 7px solid rgba(0, 0, 0, 0.68);
   outline-offset: 0;
   color: white;
   width: 100%;
@@ -731,7 +795,7 @@ body::-webkit-scrollbar-track-piece {
 .menu-btn:hover {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
   border-color: rgba(255, 255, 255, 0.4);
-  outline-color: rgba(0, 0, 0, 0.42);
+  outline-color: rgba(0, 0, 0, 0.68);
   transform: translateY(-3px);
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.2),
@@ -801,78 +865,6 @@ body::-webkit-scrollbar-track-piece {
   z-index: 10;
 }
 
-/* Custom Titlebar */
-.custom-titlebar {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 40px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #0d0d1a 100%);
-  padding: 0 8px 0 0;
-  flex: 0 0 40px;
-  z-index: 1000;
-}
-
-.titlebar-drag {
-  position: absolute;
-  inset: 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-app-region: drag;
-  app-region: drag;
-}
-
-.titlebar-title {
-  font-family: "Orbitron", "Rajdhani", "Exo 2", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(235, 241, 246, 0.78);
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-  text-shadow: none;
-  opacity: 0.9;
-}
-
-.titlebar-right {
-  display: flex;
-  height: 100%;
-  gap: 4px;
-  margin-left: auto;
-  position: relative;
-  z-index: 1;
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-
-.titlebar-btn {
-  width: 46px;
-  height: 32px;
-  border: none;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  font-weight: 300;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Segoe UI", system-ui, sans-serif;
-}
-
-.titlebar-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--green-glow);
-}
-
-.titlebar-btn.close:hover {
-  background: linear-gradient(135deg, #ff3b3b 0%, #cc0000 100%);
-  color: white;
-}
-
 /* Header */
 .header {
   display: flex;
@@ -940,17 +932,16 @@ body::-webkit-scrollbar-track-piece {
 /* Tournament loading */
 .tournament-loading-screen {
   --loading-space-1: 10px;
-  --loading-space-2: 16px;
-  --loading-space-3: 24px;
-  --loading-space-4: 32px;
+  --loading-space-2: 14px;
+  --loading-space-3: 20px;
+  --loading-space-4: 30px;
   position: relative;
-  min-height: 100%;
+  height: 100%;
   display: grid;
-  grid-template-rows: auto auto auto auto;
-  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr);
   justify-items: center;
-  gap: 8px;
-  padding: 8px 24px var(--loading-space-3);
+  gap: var(--loading-space-2);
+  padding: 8px 18px 12px;
   overflow: hidden;
 }
 
@@ -958,57 +949,89 @@ body::-webkit-scrollbar-track-piece {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 14% 16%, rgba(155, 78, 184, 0.42), transparent 26%),
-    radial-gradient(circle at 82% 18%, rgba(71, 104, 188, 0.24), transparent 22%),
-    radial-gradient(circle at 26% 72%, rgba(186, 94, 74, 0.22), transparent 24%),
-    radial-gradient(circle at 72% 78%, rgba(202, 139, 54, 0.16), transparent 20%),
-    radial-gradient(circle at 50% 52%, rgba(115, 40, 102, 0.22), transparent 28%),
-    radial-gradient(circle at 52% 42%, rgba(151, 215, 1, 0.08), transparent 18%),
+    radial-gradient(circle at 14% 16%, rgba(155, 78, 184, 0.38), transparent 26%),
+    radial-gradient(circle at 82% 18%, rgba(71, 104, 188, 0.2), transparent 22%),
+    radial-gradient(circle at 26% 72%, rgba(186, 94, 74, 0.18), transparent 24%),
+    radial-gradient(circle at 72% 78%, rgba(202, 139, 54, 0.12), transparent 20%),
+    radial-gradient(ellipse at 50% 62%, rgba(18, 97, 112, 0.22) 0%, rgba(28, 54, 72, 0.18) 24%, transparent 58%),
+    radial-gradient(ellipse at 50% 56%, rgba(140, 159, 28, 0.18) 0%, rgba(95, 112, 22, 0.12) 16%, transparent 42%),
+    linear-gradient(180deg, rgba(10, 13, 22, 0) 0%, rgba(11, 18, 28, 0.08) 54%, rgba(8, 11, 19, 0.2) 100%),
     linear-gradient(180deg, #33174a 0%, #3a1b51 18%, #261b43 38%, #1d2144 58%, #251731 78%, #130f1d 100%);
 }
 
 .tournament-loading-portal {
   position: absolute;
-  width: min(82vw, 760px);
-  aspect-ratio: 1;
+  top: 57%;
+  left: 50%;
+  width: min(78vw, 820px);
+  height: min(46vh, 380px);
   border-radius: 50%;
+  transform: translate(-50%, -50%);
   background:
-    radial-gradient(circle, rgba(184, 255, 46, 0.34) 0%, rgba(151, 215, 1, 0.18) 24%, rgba(0, 255, 247, 0.12) 42%, transparent 66%);
-  filter: blur(18px);
+    radial-gradient(ellipse, rgba(184, 255, 46, 0.16) 0%, rgba(100, 158, 42, 0.12) 18%, rgba(0, 255, 247, 0.1) 34%, rgba(42, 98, 130, 0.1) 48%, transparent 72%);
+  filter: blur(28px);
   animation: loadingPortalPulse 3.6s ease-in-out infinite;
 }
 
-.loading-corner-logo {
+.tournament-loading-header {
   position: relative;
   z-index: 2;
-  width: min(48vw, 300px);
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  width: min(100%, 760px);
+}
+
+.tournament-loading-copy {
+  margin-top: -10px;
+}
+
+.loading-corner-logo {
+  width: min(36vw, 230px);
   height: auto;
-  justify-self: center;
-  align-self: start;
-  margin-bottom: -6px;
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.35));
 }
 
 .tournament-loading-copy {
-  position: relative;
-  z-index: 1;
   display: grid;
-  gap: var(--loading-space-1);
-  width: min(100%, 720px);
-  margin-top: -4px;
+  gap: 8px;
+  width: min(100%, 760px);
+  padding: 0 16px;
+}
+
+.tournament-loading-progress {
+  display: flex;
+  justify-content: center;
+}
+
+.loading-progress-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(8, 8, 15, 0.34);
+  border: 1px solid rgba(184, 255, 46, 0.28);
+  color: rgba(244, 255, 217, 0.92);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 16px rgba(184, 255, 46, 0.04);
 }
 
 .tournament-loading-eyebrow {
   color: rgba(184, 255, 46, 0.9);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.24em;
   text-transform: uppercase;
 }
 
 .tournament-loading-copy h2 {
-  font-size: clamp(1.3rem, 2.6vw, 2rem);
-  line-height: 0.94;
+  font-size: clamp(0.98rem, 1.8vw, 1.42rem);
+  line-height: 0.95;
   text-transform: uppercase;
   color: #f7ffd5;
   text-shadow:
@@ -1018,32 +1041,59 @@ body::-webkit-scrollbar-track-piece {
 
 .tournament-loading-copy p {
   margin: 0 auto;
-  max-width: 54ch;
+  max-width: 58ch;
   color: rgba(230, 245, 255, 0.88);
-  font-size: clamp(0.84rem, 1.05vw, 0.94rem);
+  font-size: clamp(0.72rem, 0.82vw, 0.82rem);
   letter-spacing: 0.03em;
 }
 
-.transport-grid {
+.tournament-loading-stage {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 150px));
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: stretch;
+  justify-items: center;
   gap: var(--loading-space-2);
+  width: min(100%, 1040px);
+  min-height: 0;
+  padding: 4px 0 0;
+}
+
+.transport-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 144px));
+  align-content: start;
+  gap: 10px;
   justify-content: center;
-  width: min(100%, 660px);
-  margin-top: calc(var(--loading-space-1) * -1);
+  width: 100%;
+  min-height: 0;
 }
 
 .loading-actions {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 260px);
-  margin-top: calc(var(--loading-space-2) * -0.25);
+  display: grid;
+  gap: 6px;
+  width: min(100%, 606px);
+  margin-top: -2px;
+  justify-items: stretch;
   opacity: 0;
   transform: translateY(var(--loading-space-2));
   pointer-events: none;
   transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.loading-actions-copy {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 8px;
+  color: rgba(230, 245, 255, 0.76);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
 .loading-actions.is-visible {
@@ -1057,9 +1107,14 @@ body::-webkit-scrollbar-track-piece {
   cursor: wait;
 }
 
+.loading-actions .menu-btn {
+  width: 100%;
+  margin: 0;
+}
+
 .transport-card {
   position: relative;
-  min-height: 190px;
+  min-height: 138px;
   perspective: 1000px;
   opacity: 0;
   transform: translateY(50px) scale(0.86) rotate(-8deg);
@@ -1082,12 +1137,12 @@ body::-webkit-scrollbar-track-piece {
   height: 100%;
   display: grid;
   align-content: start;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 20px;
+  gap: 5px;
+  padding: 7px;
+  border-radius: 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
   border: 1px solid rgba(255, 255, 255, 0.2);
-  outline: 5px solid rgba(0, 0, 0, 0.42);
+  outline: 3px solid rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow:
@@ -1112,33 +1167,33 @@ body::-webkit-scrollbar-track-piece {
 
 .transport-card-meta span {
   color: #f8ffd8;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   font-weight: 800;
 }
 
 .transport-card-meta small {
   color: rgba(208, 226, 255, 0.72);
-  font-size: 0.66rem;
+  font-size: 0.55rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .transport-card-placeholder {
   height: 100%;
-  min-height: 168px;
+  min-height: 124px;
   display: grid;
   place-items: center;
-  gap: 12px;
+  gap: 8px;
   color: rgba(231, 245, 255, 0.72);
-  font-size: 0.82rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .placeholder-portal {
-  width: 74px;
-  height: 74px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), transparent 24%),
@@ -1223,19 +1278,42 @@ body::-webkit-scrollbar-track-piece {
     --loading-space-2: 12px;
     --loading-space-3: 18px;
     --loading-space-4: 24px;
-    padding: 6px 18px var(--loading-space-3);
-    gap: 4px;
+    padding: 10px 16px var(--loading-space-3);
+    gap: var(--loading-space-2);
+  }
+
+  .tournament-loading-header {
+    width: 100%;
   }
 
   .loading-corner-logo {
-    width: min(58vw, 240px);
-    margin-bottom: -10px;
+    width: min(62vw, 260px);
+  }
+
+  .tournament-loading-copy {
+    padding: 0;
+  }
+
+  .loading-progress-pill {
+    width: 100%;
+    max-width: 320px;
+    padding-inline: 14px;
+    font-size: 0.72rem;
+  }
+
+  .tournament-loading-stage {
+    width: 100%;
+    padding: 4px 0 0;
   }
 
   .transport-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: min(100%, 360px);
-    gap: var(--loading-space-2);
+    width: 100%;
+  }
+
+  .loading-actions .menu-btn {
+    min-width: 0;
+    width: 100%;
   }
 
   .transport-card {
@@ -1246,6 +1324,58 @@ body::-webkit-scrollbar-track-piece {
     padding: 8px;
     border-radius: 18px;
     outline-width: 4px;
+  }
+}
+
+@media (max-height: 820px) {
+  .tournament-loading-screen {
+    padding: 6px 14px 10px;
+    gap: 8px;
+  }
+
+  .loading-corner-logo {
+    width: min(28vw, 180px);
+  }
+
+  .tournament-loading-copy {
+    margin-top: -12px;
+    gap: 4px;
+  }
+
+  .tournament-loading-copy h2 {
+    font-size: clamp(0.9rem, 1.55vw, 1.22rem);
+  }
+
+  .tournament-loading-stage {
+    padding: 2px 0 0;
+  }
+
+  .loading-actions {
+    gap: 4px;
+    margin-top: -4px;
+    width: min(100%, 552px);
+  }
+
+  .loading-actions-copy {
+    max-width: 360px;
+    padding: 0 4px;
+  }
+
+  .transport-grid {
+    grid-template-columns: repeat(4, minmax(0, 132px));
+    gap: 8px;
+  }
+
+  .transport-card {
+    min-height: 128px;
+  }
+
+  .transport-card-placeholder {
+    min-height: 112px;
+  }
+
+  .loading-actions-copy {
+    font-size: 0.62rem;
   }
 }
 
