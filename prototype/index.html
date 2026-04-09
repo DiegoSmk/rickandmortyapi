@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rick & Morty — Torneio Dimensional</title>
+    <style>
+        :root {
+            --green: #97D701;
+            --green-dark: #6fa001;
+            --purple: #A564EB;
+            --purple-dark: #7b3cc4;
+            --red: #FF3B3B;
+            --yellow: #FFE135;
+            --dark: #1a1a2e;
+            --dark-secondary: #16213e;
+            --card-bg: #0f0f23;
+            --text: #ffffff;
+            --text-muted: #888;
+            --card-width: 140px;
+            --card-height: 200px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body { background: var(--dark); color: var(--text); min-height: 100vh; overflow-x: hidden; background: 
+            radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a15 100%); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        header { text-align: center; padding: 20px 0; border-bottom: 2px solid var(--green); margin-bottom: 30px; }
+
+        h1 { font-size: 2rem; color: var(--green); text-transform: uppercase; letter-spacing: 4px; }
+
+        .flurbos-display { background: var(--card-bg); border: 2px solid var(--yellow); border-radius: 12px; padding: 15px 25px; display: inline-flex; align-items: center; gap: 10px; margin-top: 15px; }
+
+        .flurbos-icon { font-size: 1.5rem; }
+        .flurbos-amount { font-size: 1.5rem; font-weight: bold; color: var(--yellow); }
+
+        .btn { background: var(--green); color: var(--dark); border: none; padding: 12px 24px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:hover { background: var(--green-dark); transform: translateY(-2px); }
+        .btn:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; }
+        .btn-purple { background: var(--purple); color: white; }
+        .btn-purple:hover { background: var(--purple-dark); }
+        .btn-yellow { background: var(--yellow); color: var(--dark); }
+        .btn-danger { background: var(--red); color: white; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .loading { text-align: center; padding: 50px; color: var(--green); }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--card-bg); border-top: 4px solid var(--green); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ========== CARD DESIGN ========== */
+        .card-wrapper { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
+        .fighter-card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background: linear-gradient(180deg, #1a1a3a 0%, #0d0d1a 100%);
+            border: 3px solid var(--purple);
+            border-radius: 12px;
+            padding: 10px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(166, 100, 235, 0.3);
+            transition: all 0.3s;
+        }
+
+        .fighter-card.winner { border-color: var(--green); box-shadow: 0 0 30px var(--green); }
+        .fighter-card.loser { border-color: var(--red); opacity: 0.5; transform: scale(0.95); }
+        .fighter-card.active { border-color: var(--yellow); box-shadow: 0 0 25px var(--yellow); }
+
+        .card-image {
+            width: 100%;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-bottom: 8px;
+        }
+
+        .card-name {
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+        }
+
+        .card-stat { text-align: center; }
+        .card-stat-value { font-size: 1.1rem; font-weight: bold; color: var(--green); }
+        .card-stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+
+        .card-hp-bar {
+            margin-top: 8px;
+            height: 8px;
+            background: var(--dark-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .card-hp-fill { background: var(--red); height: 100%; transition: width 0.3s; }
+
+        .card-type-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--purple);
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .card-tier {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--green);
+            color: var(--dark);
+            font-weight: bold;
+        }
+
+        /* ========== DECK ========== */
+        .deck-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            max-width: 300px;
+        }
+
+        .deck-card {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(135deg, #1a1a3a 0%, #0d0d1a 100%);
+            border: 2px solid var(--text-muted);
+            border-radius: 6px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.55rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .deck-card.available { border-color: var(--green); }
+        .deck-card.used { border-color: var(--purple); opacity: 1; }
+        .deck-card.cooldown { border-color: var(--red); opacity: 0.5; }
+        .deck-card.playing { border-color: var(--yellow); box-shadow: 0 0 15px var(--yellow); animation: pulse 0.5s; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .deck-card-name { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .deck-card-type { font-size: 0.45rem; color: var(--text-muted); text-transform: uppercase; }
+        .deck-card-cd { font-size: 0.5rem; color: var(--red); text-align: right; }
+
+        /* ========== BRACKET ========== */
+        .bracket { display: flex; gap: 30px; justify-content: center; overflow-x: auto; padding: 20px; }
+        .bracket-round { display: flex; flex-direction: column; gap: 20px; }
+        .bracket-title { text-align: center; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; }
+
+        .bracket-match {
+            background: var(--card-bg);
+            border: 2px solid var(--text-muted);
+            border-radius: 8px;
+            padding: 8px;
+            width: 120px;
+        }
+
+        .bracket-match.winner { border-color: var(--green); }
+        .bracket-match.active { border-color: var(--yellow); box-shadow: 0 0 15px var(--yellow); }
+        .bracket-match.completed { border-color: var(--green); opacity: 0.6; }
+
+        .bracket-fighter { display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 4px; font-size: 0.7rem; }
+        .bracket-fighter.winner { background: rgba(151, 215, 1, 0.2); }
+        .bracket-fighter.loser { opacity: 0.4; }
+        .bracket-fighter img { width: 20px; height: 20px; border-radius: 50%; }
+
+        /* ========== BETTING ========== */
+        .betting { background: var(--card-bg); border: 2px solid var(--yellow); border-radius: 12px; padding: 25px; margin: 20px auto; max-width: 600px; }
+        .betting-title { color: var(--yellow); font-weight: bold; margin-bottom: 10px; font-size: 1.2rem; }
+        .betting-subtitle { color: var(--text-muted); margin-bottom: 20px; }
+
+        .bet-options { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+        .bet-option {
+            background: var(--dark-secondary);
+            border: 2px solid var(--text-muted);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bet-option:hover { border-color: var(--green); transform: translateY(-3px); }
+        .bet-option.selected { border-color: var(--green); background: rgba(151, 215, 1, 0.15); }
+
+        .bet-amount { margin: 20px 0; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .bet-amount input { background: var(--dark-secondary); border: 2px solid var(--text-muted); color: var(--text); padding: 10px 15px; font-size: 1.2rem; width: 120px; text-align: center; border-radius: 8px; }
+
+        .gimmicks { background: var(--card-bg); border: 2px solid var(--purple); border-radius: 12px; padding: 20px; margin: 20px auto; max-width: 600px; }
+        .gimmicks-title { color: var(--purple); font-weight: bold; margin-bottom: 15px; }
+
+        .gimmick-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+        .gimmick {
+            background: var(--dark-secondary);
+            border: 1px solid var(--purple);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gimmick:hover { background: rgba(166, 100, 235, 0.2); }
+        .gimmick.selected { border-color: var(--green); background: rgba(151, 215, 1, 0.15); }
+        .gimmick.disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .gimmick-name { font-weight: bold; font-size: 0.85rem; }
+        .gimmick-cost { color: var(--yellow); font-size: 0.75rem; }
+        .gimmick-effect { color: var(--text-muted); font-size: 0.7rem; }
+
+        /* ========== BATTLE ========== */
+        .battle-arena { display: flex; justify-content: center; align-items: center; gap: 40px; margin: 30px 0; flex-wrap: wrap; }
+
+        .battle-log {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 500px;
+            max-height: 180px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+
+        .log-entry { padding: 4px 0; border-bottom: 1px solid var(--dark-secondary); }
+        .log-entry:last-child { border-bottom: none; }
+        .log-damage { color: var(--red); }
+        .log-heal { color: var(--green); }
+        .log-card { color: var(--purple); }
+        .log-win { color: var(--yellow); font-weight: bold; }
+
+        /* ========== CHAMPION ========== */
+        .champion-display { text-align: center; padding: 30px; }
+        .champion-card-large {
+            width: 200px;
+            height: 280px;
+            margin: 30px auto;
+        }
+
+        .champion-card-large .card-image { height: 150px; }
+        .champion-card-large .card-name { font-size: 1.2rem; }
+        .champion-card-large .card-stat-value { font-size: 1.5rem; }
+
+        .champion-deck { margin-top: 30px; }
+        .champion-deck-title { color: var(--text-muted); margin-bottom: 15px; }
+
+        @media (max-width: 768px) {
+            :root { --card-width: 100px; --card-height: 150px; }
+            .battle-arena { gap: 20px; }
+            .deck-display { max-width: 200px; }
+            .deck-card { width: 45px; height: 60px; font-size: 0.45rem; }
+            .gimmick-list { grid-template-columns: 1fr; }
+            .bracket { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏆 Torneio Dimensional</h1>
+            <div class="flurbos-display">
+                <span class="flurbos-icon">🪙</span>
+                <span class="flurbos-amount" id="flurbos">500</span>
+                <span>Flurbos</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- HOME -->
+        <section class="screen active" id="home-screen">
+            <div style="text-align: center;">
+                <p style="margin-bottom: 30px; color: var(--text-muted);">16 fighters. Quem vai ser o campeão?</p>
+                <button class="btn" onclick="startTournament()">🏁 Iniciar Torneio</button>
+            </div>
+        </section>
+
+        <!-- LOADING -->
+        <section class="screen" id="loading-screen">
+            <div class="loading">
+                <div class="spinner"></div>
+                Carregando fighters...
+            </div>
+        </section>
+
+        <!-- BRACKET -->
+        <section class="screen" id="bracket-screen">
+            <h2 style="text-align: center; margin-bottom: 20px;">Chaveamento</h2>
+            <div class="bracket" id="bracket"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-purple" onclick="showTournamentBet()">💰 Apostar no Campeão</button>
+            </div>
+        </section>
+
+        <!-- BETTING TOURNAMENT -->
+        <section class="screen" id="bet-tournament-screen">
+            <div class="betting">
+                <div class="betting-title">🏆 Quem vai ganhar o Torneio?</div>
+                <div class="betting-subtitle">Aposte no campeão antes das lutas</div>
+                <div class="bet-options" id="bet-tournament-options"></div>
+                <div class="bet-amount">
+                    <span>🪙</span>
+                    <input type="number" id="bet-tournament-amount" value="50" min="10">
+                </div>
+                <button class="btn btn-yellow" onclick="placeTournamentBet()">Confirmar</button>
+            </div>
+        </section>
+
+        <!-- BETTING MATCH -->
+        <section class="screen" id="bet-match-screen">
+            <div class="betting">
+                <div class="betting-title">⚔️ Luta #<span id="match-number">1</span></div>
+                <div class="betting-subtitle">Quer apostas nesta luta?</div>
+                <div class="bet-options" id="bet-match-options"></div>
+                <div class="bet-amount">
+                    <span>🪙</span>
+                    <input type="number" id="bet-match-amount" value="30" min="10">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                    <button class="btn" onclick="placeMatchBet()">Apostar</button>
+                    <button class="btn btn-purple" onclick="skipMatchBet()">Pular</button>
+                </div>
+            </div>
+            <div class="gimmicks">
+                <div class="gimmicks-title">🎭 Gimmick (ativa durante a luta)</div>
+                <div class="gimmick-list" id="gimmick-list"></div>
+            </div>
+        </section>
+
+        <!-- BATTLE -->
+        <section class="screen" id="battle-screen">
+            <h2 style="text-align: center;">⚔️ Luta #<span id="battle-number">1</span></h2>
+            <div class="battle-arena" id="battle-arena"></div>
+            <div class="battle-log" id="battle-log"></div>
+            <div style="text-align: center; margin-top: 20px;" id="battle-result"></div>
+        </section>
+
+        <!-- CHAMPION -->
+        <section class="screen" id="champion-screen">
+            <div class="champion-display">
+                <h2 style="color: var(--green);">🏆 CAMPEÃO DIMENSIONAL 🏆</h2>
+                <div id="champion-content"></div>
+                <button class="btn" onclick="resetGame()" style="margin-top: 30px;">🔄 Novo Torneio</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const state = {
+            flurbos: 500,
+            characters: [],
+            bracket: [],
+            currentMatch: 0,
+            player1: null,
+            player2: null,
+            tournamentBet: null,
+            tournamentBetAmount: 0,
+            matchBet: null,
+            matchBetAmount: 0,
+            activeGimmick: null,
+            usedGimmick: false
+        };
+
+        const MAX_TURNS = 8;
+
+        const CARDS = {
+            Rick: [
+                { name: 'Portal Gun', type: 'Dimensional', cd: 6 },
+                { name: 'Mega Seeds', type: 'Buff', cd: 4, duration: 2 },
+                { name: 'Neutrino Bomb', type: 'Ataque', cd: 8 },
+                { name: 'Flask', type: 'Buff', cd: 2 }
+            ],
+            Morty: [
+                { name: 'Mecha Suit', type: 'Campo', cd: 5, hp: 80 },
+                { name: 'Meeseeks Box', type: 'Buff', cd: 5 },
+                { name: 'Apagador', type: 'Dimensional', cd: 4 },
+                { name: 'Robô Manteiga', type: 'Buff', cd: 1 }
+            ],
+            Default: [
+                { name: 'Plumbus', type: 'Buff', cd: 1 },
+                { name: 'AntiGravidade', type: 'Defesa', cd: 1 },
+                { name: 'Scanner', type: 'Buff', cd: 2 },
+                { name: 'Granada', type: 'Ataque', cd: 3 }
+            ]
+        };
+
+        const GIMMICKS = [
+            { name: 'Emissor', cost: 50, effect: 'Falha carta' },
+            { name: 'Ampulheta', cost: 75, effect: '+25 ATK' },
+            { name: 'Microfone', cost: 30, effect: 'Revela carta' },
+            { name: 'Serum', cost: 100, effect: 'Altera aleatório' }
+        ];
+
+        // ========== API ==========
+        async function fetchCharacters(count = 16) {
+            let all = [];
+            for (let p = 1; p <= Math.ceil(count / 20); p++) {
+                const res = await fetch(`https://rickandmortyapi.com/api/character?page=${p}`);
+                const data = await res.json();
+                all = [...all, ...data.results];
+            }
+            return all.slice(0, count);
+        }
+
+        function getCardType(character) {
+            const name = character.name.toLowerCase();
+            if (name.includes('rick') && !name.includes('morty')) return 'Rick';
+            if (name.includes('morty')) return 'Morty';
+            return 'Default';
+        }
+
+        function generateStats(character) {
+            const episodes = character.episode?.length || 1;
+            const type = getCardType(character);
+            let atk = 30 + Math.min(episodes, 50);
+            let def = 20 + Math.min(episodes / 2, 20);
+            let hp = 80 + Math.min(episodes, 40);
+            if (type === 'Rick') { atk += 30; hp += 20; }
+            return { atk, def, hp, maxHp: hp };
+        }
+
+        function generateDeck(character) {
+            const type = getCardType(character);
+            const pool = CARDS[type] || CARDS.Default;
+            return [...pool].map(card => ({ 
+                ...card, 
+                state: 'available', 
+                cd: 0,
+                used: false 
+            }));
+        }
+
+        // ========== TOURNAMENT ==========
+        async function startTournament() {
+            showScreen('loading');
+            const chars = await fetchCharacters(16);
+            
+            state.characters = chars.map(c => ({
+                ...c,
+                ...generateStats(c),
+                deck: generateDeck(c)
+            }));
+
+            // Shuffle
+            for (let i = state.characters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [state.characters[i], state.characters[j]] = [state.characters[j], state.characters[i]];
+            }
+
+            // Generate bracket
+            state.bracket = [];
+            for (let i = 0; i < 16; i += 2) {
+                state.bracket.push({
+                    p1: state.characters[i],
+                    p2: state.characters[i + 1],
+                    winner: null
+                });
+            }
+
+            state.currentMatch = 0;
+            state.tournamentBet = null;
+            state.tournamentBetAmount = 0;
+
+            renderBracket();
+            showScreen('bracket-screen');
+        }
+
+        function renderBracket() {
+            const bracket = document.getElementById('bracket');
+            bracket.innerHTML = '';
+
+            const rounds = [
+                { name: 'Quartas', matches: state.bracket.slice(0, 8) },
+                { name: 'Semi', matches: state.bracket.slice(8, 12) },
+                { name: 'Final', matches: state.bracket.slice(12, 14) }
+            ];
+
+            rounds.forEach((r, ri) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'bracket-round';
+                
+                const title = document.createElement('div');
+                title.className = 'bracket-title';
+                title.textContent = r.name;
+                roundDiv.appendChild(title);
+
+                const startIdx = ri === 0 ? 0 : ri === 1 ? 8 : 12;
+                r.matches.forEach((m, mi) => {
+                    const idx = startIdx + mi;
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'bracket-match';
+                    if (m.winner) matchDiv.classList.add('completed');
+                    if (idx === state.currentMatch) matchDiv.classList.add('active');
+
+                    matchDiv.innerHTML = `
+                        <div class="bracket-fighter ${m.winner === m.p1?.id ? 'winner' : ''}">
+                            <img src="${m.p1?.image}">
+                            <span>${m.p1?.name || 'TBD'}</span>
+                        </div>
+                        <div class="bracket-fighter ${m.winner === m.p2?.id ? 'winner' : ''}">
+                            <img src="${m.p2?.image}">
+                            <span>${m.p2?.name || 'TBD'}</span>
+                        </div>
+                    `;
+                    roundDiv.appendChild(matchDiv);
+                });
+                bracket.appendChild(roundDiv);
+            });
+        }
+
+        // ========== BETTING ==========
+        function showTournamentBet() {
+            const opts = document.getElementById('bet-tournament-options');
+            opts.innerHTML = state.characters.slice(0, 8).map((c, i) => `
+                <div class="bet-option" onclick="selectTournamentBet(${c.id})">
+                    <img src="${c.image}" style="width:60px;height:60px;border-radius:50%;">
+                    <div>${c.name}</div>
+                </div>
+            `);
+            showScreen('bet-tournament-screen');
+        }
+
+        function selectTournamentBet(id) {
+            state.tournamentBet = id;
+            document.querySelectorAll('#bet-tournament-options .bet-option').forEach((el, i) => {
+                el.classList.toggle('selected', state.characters[i].id === id);
+            });
+        }
+
+        function placeTournamentBet() {
+            if (!state.tournamentBet) {
+                alert('Escolha um campeão!');
+                return;
+            }
+            const amount = parseInt(document.getElementById('bet-tournament-amount').value);
+            if (amount > state.flurbos) {
+                alert('Flurbos insuficientes!');
+                return;
+            }
+            state.tournamentBetAmount = amount;
+            state.flurbos -= amount;
+            updateFlurbos();
+            startMatchBet();
+        }
+
+        function startMatchBet() {
+            const match = state.bracket[state.currentMatch];
+            if (!match) return;
+
+            state.player1 = { ...match.p1, currentHp: match.p1.hp, deck: JSON.parse(JSON.stringify(match.p1.deck)) };
+            state.player2 = { ...match.p2, currentHp: match.p2.hp, deck: JSON.parse(JSON.stringify(match.p2.deck)) };
+            state.matchBet = null;
+            state.matchBetAmount = 0;
+            state.activeGimmick = null;
+            state.usedGimmick = false;
+
+            document.getElementById('match-number').textContent = state.currentMatch + 1;
+
+            const opts = document.getElementById('bet-match-options');
+            opts.innerHTML = `
+                <div class="bet-option" onclick="selectMatchBet(1)">
+                    <img src="${state.player1.image}" style="width:60px;height:60px;border-radius:50%;">
+                    <div>${state.player1.name}</div>
+                </div>
+                <div class="bet-option" onclick="selectMatchBet(2)">
+                    <img src="${state.player2.image}" style="width:60px;height:60px;border-radius:50%;">
+                    <div>${state.player2.name}</div>
+                </div>
+            `;
+
+            const gimmicks = document.getElementById('gimmick-list');
+            gimmicks.innerHTML = GIMMICKS.map((g, i) => `
+                <div class="gimmick" id="gimmick-${i}" onclick="selectGimmick(${i})">
+                    <div class="gimmick-name">${g.name}</div>
+                    <div class="gimmick-cost">🪙 ${g.cost}</div>
+                    <div class="gimmick-effect">${g.effect}</div>
+                </div>
+            `);
+
+            showScreen('bet-match-screen');
+        }
+
+        function selectMatchBet(player) {
+            state.matchBet = player;
+            document.querySelectorAll('#bet-match-options .bet-option').forEach((el, i) => {
+                el.classList.toggle('selected', player === i + 1);
+            });
+        }
+
+        function selectGimmick(index) {
+            const g = GIMMICKS[index];
+            if (state.usedGimmick) { alert('Gimmick já usado!'); return; }
+            if (state.flurbos < g.cost) { alert('Flurbos insuficientes!'); return; }
+            state.activeGimmick = { ...g, index };
+            document.querySelectorAll('.gimmick').forEach((el, i) => el.classList.toggle('selected', i === index));
+        }
+
+        function placeMatchBet() {
+            const amount = parseInt(document.getElementById('bet-match-amount').value);
+            if (state.matchBet && amount > 0) {
+                if (amount > state.flurbos) { alert('Flurbos insuficientes!'); return; }
+                state.matchBetAmount = amount;
+                state.flurbos -= amount;
+            }
+            if (state.activeGimmick) {
+                state.flurbos -= state.activeGimmick.cost;
+            }
+            updateFlurbos();
+            startBattle();
+        }
+
+        function skipMatchBet() {
+            placeMatchBet();
+        }
+
+        // ========== BATTLE ==========
+        function startBattle() {
+            showScreen('battle-screen');
+            document.getElementById('battle-number').textContent = state.currentMatch + 1;
+            document.getElementById('battle-log').innerHTML = '';
+            document.getElementById('battle-result').innerHTML = '';
+
+            renderBattleArena();
+            log('⚔️ Luta começa!', 'card');
+
+            setTimeout(runAutoBattle, 500);
+        }
+
+        function renderBattleArena() {
+            const arena = document.getElementById('battle-arena');
+            
+            const hp1 = (state.player1.currentHp / state.player1.maxHp) * 100;
+            const hp2 = (state.player2.currentHp / state.player2.maxHp) * 100;
+
+            arena.innerHTML = `
+                <div class="card-wrapper">
+                    ${createFighterCard(state.player1, hp1, 'player')}
+                    <div class="deck-display">
+                        ${state.player1.deck.map((c, i) => createDeckCard(c, i)).join('')}
+                    </div>
+                </div>
+                <div style="font-size: 2rem; color: var(--yellow);">VS</div>
+                <div class="card-wrapper">
+                    ${createFighterCard(state.player2, hp2, 'enemy')}
+                    <div class="deck-display">
+                        ${state.player2.deck.map((c, i) => createDeckCard(c, i)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createFighterCard(player, hpPercent, cls) {
+            return `
+                <div class="fighter-card ${cls}">
+                    <div class="card-type-badge">${getCardType(player)}</div>
+                    <img class="card-image" src="${player.image}">
+                    <div class="card-name">${player.name}</div>
+                    <div class="card-stats">
+                        <div class="card-stat"><div class="card-stat-value">${player.atk}</div><div class="card-stat-label">ATK</div></div>
+                        <div class="card-stat"><div class="card-stat-value">${player.def}</div><div class="card-stat-label">DEF</div></div>
+                    </div>
+                    <div class="card-hp-bar"><div class="card-hp-fill" style="width: ${hpPercent}%"></div></div>
+                </div>
+            `;
+        }
+
+        function createDeckCard(card, index) {
+            let stateClass = 'available';
+            if (card.used) stateClass = 'used';
+            else if (card.cd > 0) stateClass = 'cooldown';
+
+            return `
+                <div class="deck-card ${stateClass}">
+                    <div class="deck-card-name">${card.name}</div>
+                    <div class="deck-card-type">${card.type}</div>
+                    <div class="deck-card-cd">${card.cd > 0 ? `CD:${card.cd}` : ''}</div>
+                </div>
+            `;
+        }
+
+        function runAutoBattle() {
+            let turn = 1;
+
+            function battleLoop() {
+                if (turn > MAX_TURNS || state.player1.currentHp <= 0 || state.player2.currentHp <= 0) {
+                    finishBattle();
+                    return;
+                }
+
+                // Find cards to use
+                const available1 = state.player1.deck.filter(c => c.state === 'available' && c.cd === 0);
+                const available2 = state.player2.deck.filter(c => c.state === 'available' && c.cd === 0);
+
+                // Use card if available (30% chance)
+                let cardUsed1 = null, cardUsed2 = null;
+                
+                if (available1.length > 0 && Math.random() < 0.35) {
+                    cardUsed1 = available1[Math.floor(Math.random() * available1.length)];
+                    useCard(cardUsed1, state.player1, state.player2);
+                }
+                
+                if (available2.length > 0 && Math.random() < 0.35) {
+                    cardUsed2 = available2[Math.floor(Math.random() * available2.length)];
+                    useCard(cardUsed2, state.player2, state.player1);
+                }
+
+                // Attack if no card used
+                if (!cardUsed1) {
+                    const dmg1 = Math.max(0, state.player1.atk - state.player2.def);
+                    state.player2.currentHp -= dmg1;
+                    log(`${state.player1.name} ataca → ${dmg1} dano`, 'damage');
+                }
+                if (!cardUsed2) {
+                    const dmg2 = Math.max(0, state.player2.atk - state.player1.def);
+                    state.player1.currentHp -= dmg2;
+                    log(`${state.player2.name} ataca → ${dmg2} dano`, 'damage');
+                }
+
+                // Gimmick
+                if (state.activeGimmick && !state.usedGimmick && turn <= 3) {
+                    if (state.activeGimmick.name === 'Ampulheta') {
+                        state.player1.atk += 25;
+                        log(`🎭 Ampulheta: +25 ATK para ${state.player1.name}!`, 'heal');
+                    }
+                    state.usedGimmick = true;
+                }
+
+                // Update cooldowns
+                [...state.player1.deck, ...state.player2.deck].forEach(c => {
+                    if (c.cd > 0) c.cd--;
+                    if (c.cd === 0 && c.used) c.state = 'available';
+                });
+
+                // Update UI
+                const hp1 = Math.max(0, (state.player1.currentHp / state.player1.maxHp) * 100);
+                const hp2 = Math.max(0, (state.player2.currentHp / state.player2.maxHp) * 100);
+                renderBattleArena();
+
+                turn++;
+                setTimeout(battleLoop, 1000);
+            }
+
+            battleLoop();
+        }
+
+        function useCard(card, user, target) {
+            card.used = true;
+            card.state = 'used';
+            card.cd = card.cd || 3;
+
+            log(`🃏 ${user.name} usa ${card.name}!`, 'card');
+
+            // Apply effect
+            if (card.type === 'Ataque' || card.type === 'Buff') {
+                if (card.name.includes('Neutrino') || card.name.includes('Granada')) {
+                    const dmg = card.name === 'Neutrino Bomb' ? 55 : 35;
+                    target.currentHp -= dmg;
+                    log(`   → ${dmg} dano!`, 'damage');
+                } else if (card.name.includes('Mega') || card.name.includes('Meeseeks')) {
+                    user.atk += card.name === 'Mega Seeds' ? 35 : 25;
+                    log(`   → +${card.name === 'Mega Seeds' ? 35 : 25} ATK!`, 'heal');
+                }
+            }
+        }
+
+        function finishBattle() {
+            const p1Wins = state.player1.currentHp > state.player2.currentHp;
+            const winner = p1Wins ? state.player1 : state.player2;
+
+            document.getElementById('battle-arena').innerHTML = `
+                <div class="card-wrapper">
+                    ${createFighterCard(state.player1, Math.max(0, (state.player1.currentHp / state.player1.maxHp) * 100), p1Wins ? 'winner' : 'loser')}
+                    <div class="deck-display">${state.player1.deck.map((c, i) => createDeckCard(c, i)).join('')}</div>
+                </div>
+                <div style="font-size: 2rem; color: var(--yellow);">VS</div>
+                <div class="card-wrapper">
+                    ${createFighterCard(state.player2, Math.max(0, (state.player2.currentHp / state.player2.maxHp) * 100), !p1Wins ? 'winner' : 'loser')}
+                    <div class="deck-display">${state.player2.deck.map((c, i) => createDeckCard(c, i)).join('')}</div>
+                </div>
+            `;
+
+            log(`🏆 ${winner.name} venceu!`, 'win');
+
+            document.getElementById('battle-result').innerHTML = `
+                <div style="font-size: 1.5rem; color: var(--green); margin: 20px 0;">🏆 ${winner.name} wins!</div>
+                <button class="btn" onclick="nextMatch()">Próxima Luta →</button>
+            `;
+
+            state.bracket[state.currentMatch].winner = winner.id;
+
+            // Process bets
+            setTimeout(() => {
+                if (state.matchBetAmount > 0) {
+                    const won = (state.matchBet === 1 && p1Wins) || (state.matchBet === 2 && !p1Wins);
+                    if (won) {
+                        state.flurbos += state.matchBetAmount * 2;
+                        log(`+${state.matchBetAmount * 2} Flurbos (luta)`, 'heal');
+                    }
+                }
+                if (state.tournamentBetAmount > 0 && state.bracket[13]?.winner) {
+                    const wonT = state.tournamentBet === state.bracket[13].winner;
+                    if (wonT) {
+                        state.flurbos += state.tournamentBetAmount * 8;
+                        log(`+${state.tournamentBetAmount * 8} Flurbos (torneio)!`, 'heal');
+                    }
+                }
+                updateFlurbos();
+            }, 500);
+        }
+
+        function nextMatch() {
+            state.currentMatch++;
+            if (state.currentMatch >= 14) {
+                showChampion();
+                return;
+            }
+            while (state.currentMatch < 14 && state.bracket[state.currentMatch]?.winner) {
+                state.currentMatch++;
+            }
+            if (state.currentMatch >= 14) {
+                showChampion();
+                return;
+            }
+            renderBracket();
+            startMatchBet();
+        }
+
+        function showChampion() {
+            const final = state.bracket[13];
+            const champion = state.characters.find(c => c.id === final?.winner);
+
+            document.getElementById('champion-content').innerHTML = `
+                <div class="fighter-card winner champion-card-large">
+                    <div class="card-tier">CAMPEÃO</div>
+                    <img class="card-image" src="${champion?.image}">
+                    <div class="card-name">${champion?.name}</div>
+                    <div class="card-stats">
+                        <div class="card-stat"><div class="card-stat-value">${champion?.atk}</div><div class="card-stat-label">ATK</div></div>
+                        <div class="card-stat"><div class="card-stat-value">${champion?.def}</div><div class="card-stat-label">DEF</div></div>
+                    </div>
+                </div>
+                <div class="champion-deck">
+                    <div class="champion-deck-title">Deck do Campeão</div>
+                    <div class="deck-display" style="max-width: 400px;">
+                        ${champion?.deck.map((c, i) => createDeckCard(c, i)).join('')}
+                    </div>
+                </div>
+            `;
+
+            showScreen('champion-screen');
+        }
+
+        function resetGame() {
+            state.flurbos = 500;
+            state.tournamentBet = null;
+            state.tournamentBetAmount = 0;
+            updateFlurbos();
+            showScreen('home-screen');
+        }
+
+        // ========== UTILS ==========
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id)?.classList.add('active');
+        }
+
+        function updateFlurbos() {
+            document.getElementById('flurbos').textContent = state.flurbos;
+        }
+
+        function log(msg, type) {
+            const logEl = document.getElementById('battle-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = msg;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        updateFlurbos();
+    </script>
+</body>
+</html>
