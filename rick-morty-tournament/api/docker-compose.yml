@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rick-morty-tournament-api
+    environment:
+      NODE_ENV: development
+      PORT: 8080
+      LOG_LEVEL: info
+      DATABASE_URL: file:/data/rick-morty-tournament.sqlite
+      ASSET_STORAGE_DIR: /data/assets
+      RICK_AND_MORTY_API_BASE_URL: https://rickandmortyapi.com/api
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_BASE_URL: ${GEMINI_API_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite-preview}
+      ENABLE_GEMINI_ENRICHMENT: ${ENABLE_GEMINI_ENRICHMENT:-false}
+      SYNC_DEFAULT_PAGE_SIZE: "20"
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - api_data:/data
+      - /app/node_modules
+    restart: unless-stopped
+
+volumes:
+  api_data:
