@@ -30,6 +30,8 @@ export interface CharacterCatalogRow {
   primarySourceName: string | null;
   primarySourceId: string | null;
   primarySourceUrl: string | null;
+  likes: number;
+  dislikes: number;
   hasAiProfile: number;
   updatedAt: string;
 }
@@ -151,6 +153,8 @@ export class CharactersRepository {
         scl.source_id AS primarySourceId,
         scl.source_url AS primarySourceUrl
         ,
+        cc.likes AS likes,
+        cc.dislikes AS dislikes,
         CASE
           WHEN EXISTS (
             SELECT 1
@@ -235,6 +239,29 @@ export class CharactersRepository {
     `).get(id) as unknown as CharacterDetailRow | undefined;
 
     return row ? this.withResolvedImageUrl(row) : undefined;
+  }
+
+  applyVoteDelta(id: string, likesDelta: number, dislikesDelta: number) {
+    return this.db.prepare(`
+      UPDATE canonical_characters
+      SET
+        likes = MAX(0, likes + ?),
+        dislikes = MAX(0, dislikes + ?),
+        updated_at = ?
+      WHERE id = ?
+      RETURNING
+        id,
+        likes,
+        dislikes,
+        updated_at AS updatedAt
+    `).get(likesDelta, dislikesDelta, new Date().toISOString(), id) as
+      | {
+          id: string;
+          likes: number;
+          dislikes: number;
+          updatedAt: string;
+        }
+      | undefined;
   }
 
   listEpisodesForCharacter(characterId: string) {

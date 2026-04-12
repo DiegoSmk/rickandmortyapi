@@ -15,6 +15,12 @@ const randomCharactersQuerySchema = z.object({
   eligibleOnly: z.coerce.boolean().optional().default(true)
 });
 
+const characterVoteBodySchema = z.object({
+  likes: z.coerce.number().int().default(0),
+  dislikes: z.coerce.number().int().default(0),
+  sync: z.coerce.boolean().optional().default(false)
+});
+
 export async function registerCharacterRoutes(app: FastifyInstance) {
   app.get("/v1/characters", async (request) => {
     const query = characterListQuerySchema.parse(request.query);
@@ -52,6 +58,8 @@ export async function registerCharacterRoutes(app: FastifyInstance) {
             dimensionLabel: item.currentDimensionLabel
           },
           episodeCount: item.episodeCount,
+          likes: item.likes,
+          dislikes: item.dislikes,
           hasAiProfile: Boolean(item.hasAiProfile),
           primarySource: item.primarySourceId
             ? {
@@ -88,6 +96,8 @@ export async function registerCharacterRoutes(app: FastifyInstance) {
           status: item.status,
           imageUrl: item.imageUrl,
           episodeCount: item.episodeCount,
+          likes: item.likes,
+          dislikes: item.dislikes,
           hasAiProfile: Boolean(item.hasAiProfile),
           isVariant: Boolean(item.isVariant),
           isActive: Boolean(item.isActive)
@@ -149,6 +159,8 @@ export async function registerCharacterRoutes(app: FastifyInstance) {
           dimensionLabel: character.currentDimensionLabel
         },
         episodeCount: character.episodeCount,
+        likes: character.likes,
+        dislikes: character.dislikes,
         primarySource: character.primarySourceId
           ? {
               sourceName: character.primarySourceName,
@@ -187,6 +199,39 @@ export async function registerCharacterRoutes(app: FastifyInstance) {
       data: {
         characterId: params.id,
         items: app.characterEvidence.listCharacterEvidences(params.id)
+      },
+      meta: createMeta(request.requestId)
+    };
+  });
+
+  app.post("/v1/characters/:id/vote", async (request, reply) => {
+    const params = z.object({ id: z.string().min(1) }).parse(request.params);
+    const body = characterVoteBodySchema.parse(request.body ?? {});
+
+    const updated = app.repositories.characters.applyVoteDelta(
+      params.id,
+      body.likes,
+      body.dislikes
+    );
+
+    if (!updated) {
+      reply.code(404);
+      return {
+        error: {
+          code: "not_found",
+          message: "Character not found."
+        },
+        meta: createMeta(request.requestId)
+      };
+    }
+
+    return {
+      data: {
+        id: updated.id,
+        likes: updated.likes,
+        dislikes: updated.dislikes,
+        updatedAt: updated.updatedAt,
+        sync: body.sync
       },
       meta: createMeta(request.requestId)
     };

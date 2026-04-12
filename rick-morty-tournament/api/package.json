@@ -8,6 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "start:prod": "node dist/db/run-migrations.js && node dist/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "migrate": "tsx src/db/run-migrations.ts",
     "bootstrap:public-api": "tsx src/jobs/bootstrap-public-api.ts",

@@ -107,3 +107,62 @@ Checar se o provider Gemini entrou corretamente no container:
 ```bash
 curl http://localhost:8080/v1/admin/enrichment/provider
 ```
+
+## Publicacao da API
+
+Para publicar a API sem reescrever a stack, o caminho mais pragmatico e seguro e usar um host com:
+
+- suporte a Dockerfile
+- volume persistente montado em `/data`
+- variaveis de ambiente
+
+Uma boa opcao para esta API e Railway, porque combina com o uso atual de SQLite em `file:/data/rick-morty-tournament.sqlite`.
+
+### Ajustes ja preparados para producao
+
+- `Dockerfile` multi-stage com imagem final em `NODE_ENV=production`
+- migrations executadas automaticamente no boot com `npm run start:prod`
+- volume esperado em `/data`
+
+### Passo a passo recomendado no Railway
+
+1. Criar um novo projeto no Railway
+2. Conectar este repositorio
+3. Configurar o Root Directory como `rick-morty-tournament/api`
+4. Adicionar um volume persistente montado em `/data`
+5. Configurar as variaveis de ambiente:
+
+```bash
+NODE_ENV=production
+PORT=8080
+LOG_LEVEL=info
+DATABASE_URL=file:/data/rick-morty-tournament.sqlite
+ASSET_STORAGE_DIR=/data/assets
+RICK_AND_MORTY_API_BASE_URL=https://rickandmortyapi.com/api
+ENABLE_GEMINI_ENRICHMENT=false
+SYNC_DEFAULT_PAGE_SIZE=20
+```
+
+6. Se for usar enriquecimento:
+
+```bash
+GEMINI_API_KEY=sua-chave
+GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+GEMINI_MODEL=gemini-3.1-flash-lite-preview
+ENABLE_GEMINI_ENRICHMENT=true
+```
+
+7. Fazer o deploy
+8. Validar a healthcheck:
+
+```bash
+curl https://SUA-URL/v1/health
+```
+
+### Integracao com o portal Cloudflare
+
+Depois da API estar publicada, configure no `cloudflare-portal`:
+
+- `API_BASE_URL=https://SUA-URL`
+
+e redeploye o portal.

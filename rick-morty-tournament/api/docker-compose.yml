@@ -3,7 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     container_name: rick-morty-tournament-api
+    command: npm run dev
     environment:
       NODE_ENV: development
       PORT: 8080
