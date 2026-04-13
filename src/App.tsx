@@ -1103,16 +1103,6 @@ const App: React.FC = () => {
 
                         <div className="left-details-box">
                           <div className="detail-carousel">
-                            <div className="detail-carousel-track" style={{ transform: `translateX(-${characterInfoSlide * 100}%)` }}>
-                              {detailSlides.map((slide) => (
-                                <div key={slide.label} className="detail-carousel-slide">
-                                  <div className="detail-item">
-                                    <span className="label">{slide.label}</span>
-                                    <span className="value">{slide.value}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
                             <div className="detail-carousel-dots">
                               {detailSlides.map((slide, index) => (
                                 <button
@@ -1123,6 +1113,18 @@ const App: React.FC = () => {
                                   onClick={() => setCharacterInfoSlide(index)}
                                 />
                               ))}
+                            </div>
+                            <div className="detail-carousel-viewport">
+                              <div className="detail-carousel-track" style={{ transform: `translateX(-${characterInfoSlide * 100}%)` }}>
+                                {detailSlides.map((slide) => (
+                                  <div key={slide.label} className="detail-carousel-slide">
+                                    <div className="detail-item">
+                                      <span className="label">{slide.label}</span>
+                                      <span className="value">{slide.value}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
 

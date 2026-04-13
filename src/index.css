@@ -1553,6 +1553,13 @@ header {
 
 .detail-carousel {
   margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.detail-carousel-viewport {
   overflow: hidden;
 }
 
@@ -1567,9 +1574,9 @@ header {
 
 .detail-carousel-dots {
   display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .detail-carousel-dot {
@@ -1589,9 +1596,7 @@ header {
 }
 
 .ai-log-section.mini {
-  background: transparent;
-  padding: 0;
-  border: none;
+  padding: 1rem 1.1rem;
   margin: 0;
 }
 
@@ -1743,6 +1748,7 @@ header {
 
 .ai-log-text.public-log-text {
   color: #d7edf2;
+  border-left-color: rgba(0, 181, 204, 0.45);
 }
 
 .modal-actions {
