@@ -22,7 +22,7 @@ function normalizeBaseUrl(baseUrl) {
 }
 
 function getUpstreamBaseUrl(env) {
-  return normalizeBaseUrl(env.API_BASE_URL || env.RICK_AND_MORTY_API_BASE_URL);
+  return normalizeBaseUrl(env.RICK_AND_MORTY_API_BASE_URL);
 }
 
 function mapUpstreamCharacter(item, votes = {}) {
@@ -587,14 +587,6 @@ async function fetchCharacterDetailFromUpstream(env, characterId) {
   };
 }
 
-async function fetchFromCustomApi(env, requestUrl, resourcePath = "") {
-  const upstreamBaseUrl = normalizeBaseUrl(env.API_BASE_URL);
-  const suffix = resourcePath ? `/${resourcePath}` : "";
-  const upstreamUrl = `${upstreamBaseUrl}/v1/characters${suffix}${requestUrl.search}`;
-
-  return fetchJson(upstreamUrl);
-}
-
 function parsePath(context) {
   const raw = context.params?.path;
 
@@ -636,20 +628,6 @@ export async function onRequestGet(context) {
         }
 
         return json(detail);
-      }
-    }
-
-    if (context.env.API_BASE_URL) {
-      if (path.length === 0) {
-        return json(await fetchFromCustomApi(context.env, new URL(context.request.url)));
-      }
-
-      if (path.length === 1 && path[0] === "random") {
-        return json(await fetchFromCustomApi(context.env, new URL(context.request.url), "random"));
-      }
-
-      if (path.length === 1) {
-        return json(await fetchFromCustomApi(context.env, new URL(context.request.url), path[0]));
       }
     }
 

@@ -907,6 +907,15 @@ function AdminApp() {
                   <button className="admin-secondary-button" style={{ marginTop: 0 }} type="button" onClick={importCharacters} disabled={importing || bulkImporting}>
                     {importing ? "Importing..." : "Import Characters"}
                   </button>
+                  <button
+                    className="admin-secondary-button"
+                    style={{ marginTop: 0 }}
+                    type="button"
+                    onClick={importAllGradually}
+                    disabled={importing || bulkImporting}
+                  >
+                    {bulkImporting ? "Importing All..." : "Import All Gradually"}
+                  </button>
                 </div>
               </div>
 

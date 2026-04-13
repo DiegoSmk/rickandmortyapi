@@ -5,7 +5,6 @@ pages_build_output_dir = "./dist"
 
 [vars]
 RICK_AND_MORTY_API_BASE_URL = "https://rickandmortyapi.com/api"
-API_BASE_URL = ""
 ADMIN_EMAILS = "guinho_p1@hotmail.com"
 ADMIN_EDITOR_EMAILS = ""
 ADMIN_VIEWER_EMAILS = ""

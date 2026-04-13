@@ -1,5 +1,0 @@
-ALTER TABLE canonical_characters
-ADD COLUMN likes INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE canonical_characters
-ADD COLUMN dislikes INTEGER NOT NULL DEFAULT 0;

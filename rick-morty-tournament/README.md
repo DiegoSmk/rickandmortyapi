@@ -1,7 +1,37 @@
-# Tauri + React + Typescript
+# Rick and Morty Tournament Workspace
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+This workspace currently contains two active fronts:
 
-## Recommended IDE Setup
+- `cloudflare-portal`
+  Cloudflare-first public catalog, admin portal, D1 data layer, R2 images, and AI enrichment flows.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- `src` + `src-tauri`
+  Local Tauri/React application for the game shell and tournament experience.
+
+## Source of Truth
+
+For catalog, import, votes, admin, AI enrichment, and content moderation, the source of truth is:
+
+- `cloudflare-portal`
+
+## Common Commands
+
+### Cloudflare portal
+
+```bash
+cd cloudflare-portal
+npm install
+npm run build
+npm run cf:dev
+npm run cf:deploy
+```
+
+### Tauri app
+
+```bash
+cd ..
+cd rick-morty-tournament
+npm install
+npm run dev
+npm run tauri
+```
