@@ -1,0 +1,31 @@
+{
+  "name": "rick-morty-cloudflare-portal",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "cf:dev": "npx wrangler pages dev dist",
+    "cf:deploy": "npx wrangler pages deploy dist",
+    "cf:d1:create": "npx wrangler d1 create rick-morty-portal",
+    "cf:d1:migrate": "npx wrangler d1 execute rick-morty-portal --file=./d1/schema.sql"
+  },
+  "dependencies": {
+    "framer-motion": "^11.15.0",
+    "i18next": "^26.0.4",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-i18next": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.7"
+  }
+}

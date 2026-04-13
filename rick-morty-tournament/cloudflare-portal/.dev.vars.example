@@ -1,0 +1,8 @@
+RICK_AND_MORTY_API_BASE_URL=https://rickandmortyapi.com/api
+API_BASE_URL=
+ADMIN_EMAILS=smokin.p1@gmail.com
+ADMIN_EDITOR_EMAILS=
+ADMIN_VIEWER_EMAILS=
+GEMINI_API_KEY=
+GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+GEMINI_MODEL=gemini-2.5-flash

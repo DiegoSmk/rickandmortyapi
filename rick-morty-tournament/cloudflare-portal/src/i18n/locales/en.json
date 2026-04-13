@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "Synchronizing dimensions...",
+    "search": "Search for characters...",
+    "no_results": "No results found in this catalog sector.",
+    "likes": "Likes",
+    "dislikes": "Dislikes",
+    "mute": "Mute Sounds",
+    "unmute": "Enable Sounds"
+  },
+  "header": {
+    "badge": "PROJECT MADE BY FANS • NON-PROFIT DIMENSIONAL HUB",
+    "subtitle": "Explore the Multiverse: Meet all characters synchronized by our <highlight>Interdimensional Intelligence</highlight>."
+  },
+  "dashboard": {
+    "status": "STATUS",
+    "species": "SPECIES"
+  },
+  "catalog": {
+    "characters": "CHARACTERS",
+    "episodes": "EPISODES",
+    "locations": "LOCATIONS",
+    "unknown_air_date": "AIR DATE NOT REGISTERED",
+    "unknown_dimension": "DIMENSION NOT REGISTERED",
+    "unknown_type": "TYPE NOT REGISTERED",
+    "total_characters": "{{count}} characters indexed",
+    "total_episodes": "{{count}} episodes indexed",
+    "total_locations": "{{count}} locations indexed"
+  },
+  "modal": {
+    "origin": "ORIGIN",
+    "location": "LOCATION",
+    "first_seen_in": "FIRST SEEN IN",
+    "monitoring": "MONITORING RECORDS",
+    "detail_fallback_notice": "The detailed dossier did not respond. Showing only the data already available in this portal layer.",
+    "no_records": "No records found.",
+    "ai_analysis": "INTERDIMENSIONAL INTELLIGENCE",
+    "ai_summary": "Variant monitored by the Citadel of Ricks. Data integrity: EXCELLENT.",
+    "public_analysis": "DESCRIPTION",
+    "public_summary": "Base profile synchronized from the public Rick and Morty API.",
+    "empty_description": "No consolidated summary found in this dimensional cycle.",
+    "empty_capacity": "Tactical read unavailable. The evaluation mesh has not consolidated enough attributes yet.",
+    "empty_field": "Trait, weakness, and ability signatures have not yet been fixed by the interdimensional mesh.",
+    "air_date": "AIR DATE",
+    "characters_count": "LINKED CHARACTERS",
+    "episode_overview": "EPISODE OVERVIEW",
+    "episode_placeholder": "{{code}} aired on {{airDate}} and currently maintains {{characterCount}} character links in the synchronized catalog.",
+    "location_type": "TYPE",
+    "residents_count": "LINKED RESIDENTS",
+    "location_overview": "LOCATION OVERVIEW",
+    "location_placeholder": "This location is registered as {{type}}, in the {{dimension}} dimension, with {{residentCount}} linked residents in the synchronized catalog.",
+    "capacity_analysis": "CAPACITY ANALYSIS",
+    "field_analysis": "FIELD ANALYSIS",
+    "abilities": "ABILITIES",
+    "traits": "TRAITS",
+    "weaknesses": "WEAKNESSES",
+    "like_btn": "Like Variant",
+    "dislike_btn": "Reject",
+    "synchronizing": "Synchronizing Citadel dossier...",
+    "unknown": "UNKNOWN"
+  },
+  "attributes": {
+    "genialidade": "GENIUS",
+    "sobrevivencia": "SURVIVAL",
+    "caos": "CHAOS",
+    "instabilidade": "INSTABILITY",
+    "influencia": "INFLUENCE",
+    "vitalidade": "VITALITY",
+    "gen_desc": "Intelligence, science, technical improvisation and technological mastery.",
+    "surv_desc": "Resistance, defense and ability to withstand hostile environments and damage.",
+    "chaos_desc": "Offensive power, ability to cause havoc and disrupt combat.",
+    "inst_desc": "Unpredictability, chance of turnaround and synergy with out-of-pattern events.",
+    "infl_desc": "Persuasion, manipulation, social presence and indirect control of combat.",
+    "vit_desc": "Structural life reserve and physical integrity of the character."
+  },
+  "splash": {
+    "initializing": "INITIALIZING PORTAL..."
+  },
+  "footer": {
+    "hosted": "Hosted on Cloudflare Pages • Interdimensional Prototype"
+  },
+  "traits_data": {
+    "panic": "Panic",
+    "under_pressure": "Under Pressure",
+    "under pressure": "Under Pressure",
+    "panic_under_pressure": "Panic Under Pressure",
+    "panic under pressure": "Panic Under Pressure",
+    "resilient": "Resilient",
+    "supportive": "Supportive",
+    "fragile": "Fragile",
+    "cowardly": "Cowardly",
+    "scientific_genius": "Scientific Genius",
+    "nihilism": "Nihilism",
+    "unpredictable": "Unpredictable",
+    "loyal": "Loyal",
+    "clumsy": "Clumsy",
+    "stubborn": "Stubborn"
+  }
+}
