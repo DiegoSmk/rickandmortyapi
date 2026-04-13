@@ -372,6 +372,10 @@ function optionalHttpUrl(value, label) {
     return null;
   }
 
+  if (next.startsWith("/")) {
+    return next;
+  }
+
   try {
     const url = new URL(next);
     if (!["http:", "https:"].includes(url.protocol)) {
@@ -381,6 +385,71 @@ function optionalHttpUrl(value, label) {
   } catch {
     throw new Error(`${label} must be a valid http or https URL.`);
   }
+}
+
+function getImageExtension(imageUrl, contentType) {
+  const normalizedType = String(contentType || "").toLowerCase();
+
+  if (normalizedType.includes("png")) {
+    return "png";
+  }
+
+  if (normalizedType.includes("webp")) {
+    return "webp";
+  }
+
+  if (normalizedType.includes("gif")) {
+    return "gif";
+  }
+
+  try {
+    const pathname = new URL(imageUrl).pathname.toLowerCase();
+    if (pathname.endsWith(".png")) {
+      return "png";
+    }
+    if (pathname.endsWith(".webp")) {
+      return "webp";
+    }
+    if (pathname.endsWith(".gif")) {
+      return "gif";
+    }
+  } catch {
+    // no-op
+  }
+
+  return "jpeg";
+}
+
+async function mirrorCharacterImageToR2(env, characterId, imageUrl) {
+  const nextUrl = typeof imageUrl === "string" ? imageUrl.trim() : "";
+
+  if (!nextUrl || nextUrl.startsWith("/")) {
+    return nextUrl || null;
+  }
+
+  if (!env.CHARACTER_IMAGES?.put) {
+    return nextUrl;
+  }
+
+  const response = await fetch(nextUrl);
+
+  if (!response.ok) {
+    throw new Error(`Image mirror failed with status ${response.status}.`);
+  }
+
+  const contentType = response.headers.get("content-type") || "image/jpeg";
+  const extension = getImageExtension(nextUrl, contentType);
+  const key = `characters/${characterId}.${extension}`;
+  const body = await response.arrayBuffer();
+
+  await env.CHARACTER_IMAGES.put(key, body, {
+    httpMetadata: {
+      contentType,
+      cacheControl: "public, max-age=31536000, immutable"
+    }
+  });
+
+  return `/images/characters/${characterId}.${extension}`;
 }
 
 function validateBaseContentPayload(payload, existingRow) {
@@ -1015,12 +1084,22 @@ export async function onRequestPost(context) {
 
       const payload = await fetchJson(nextUrl);
       const characters = Array.isArray(payload.results) ? payload.results : [];
+      const mirroredCharacters = await Promise.all(
+        characters.map(async (character) => ({
+          ...character,
+          mirroredImageUrl: await mirrorCharacterImageToR2(
+            context.env,
+            String(character.id),
+            character.image || null
+          )
+        }))
+      );
 
-      if (characters.length > 0) {
+      if (mirroredCharacters.length > 0) {
         const skipExisting = Boolean(body?.skipExisting);
         
         await context.env.DB.batch(
-          characters.map((character) =>
+          mirroredCharacters.map((character) =>
             context.env.DB.prepare(`
               INSERT INTO characters (
                 id,
@@ -1061,7 +1140,7 @@ export async function onRequestPost(context) {
               character.type || null,
               character.gender || null,
               character.status || null,
-              character.image || null,
+              character.mirroredImageUrl || character.image || null,
               character.origin?.name || null,
               character.location?.name || null,
               Array.isArray(character.episode) ? character.episode.length : 0,
@@ -1372,6 +1451,9 @@ export async function onRequestPost(context) {
 
     try {
       sanitizedPayload = validateBaseContentPayload(body?.payload, existingRow);
+      if (sanitizedPayload.imageUrl && !sanitizedPayload.imageUrl.startsWith("/")) {
+        sanitizedPayload.imageUrl = await mirrorCharacterImageToR2(context.env, characterId, sanitizedPayload.imageUrl);
+      }
     } catch (error) {
       return json({
         error: {

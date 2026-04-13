@@ -224,7 +224,7 @@ function AdminApp() {
   const [actionMessage, setActionMessage] = useState<string>("");
   const [manualInputs, setManualInputs] = useState<Record<string, ManualInputState>>({});
   const [baseInputs, setBaseInputs] = useState<Record<string, BaseInputState>>({});
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
 
   async function fetchJson(path: string, init?: RequestInit) {
     const response = await fetch(path, init);
@@ -619,11 +619,8 @@ function AdminApp() {
     }));
   }
 
-  function toggleCardExpansion(characterId: string) {
-    setExpandedCards((prev) => ({
-      ...prev,
-      [characterId]: !prev[characterId]
-    }));
+  function closeEditor() {
+    setEditingCharacterId(null);
   }
 
   function addFieldEntry(characterId: string, group: "traits" | "weaknesses" | "abilities") {
@@ -961,7 +958,6 @@ function AdminApp() {
                   : character.enrichment.description || character.enrichment.capacityAnalysis || character.enrichment.fieldAnalysis
                     ? "partial"
                     : "empty";
-                const isExpanded = Boolean(expandedCards[character.id]);
                 const baseInput = baseInputs[character.id] || emptyBaseInput();
 
                 return (
@@ -979,7 +975,7 @@ function AdminApp() {
                       <span className={character.enrichment.description ? "admin-badge filled" : "admin-badge"}>Description</span>
                       <span className={character.enrichment.capacityAnalysis ? "admin-badge filled" : "admin-badge"}>Capacity</span>
                       <span className={character.enrichment.fieldAnalysis ? "admin-badge filled" : "admin-badge"}>Field</span>
-                      {character.aiProfile?.sections?.description?.source ? (
+{character.aiProfile?.sections?.description?.source ? (
                         <span className="admin-badge admin-badge-source">
                           Description source: {character.aiProfile.sections.description.source}
                         </span>
@@ -997,10 +993,10 @@ function AdminApp() {
                       <button
                         className="admin-secondary-button admin-card-button"
                         type="button"
-                        onClick={() => toggleCardExpansion(character.id)}
+                        onClick={() => setEditingCharacterId(character.id)}
                         disabled={Boolean(busyAction)}
                       >
-                        {isExpanded ? "Collapse Editors" : "Open Editors"}
+                        Open Editor
                       </button>
                       <button
                         className="admin-danger-button admin-card-button"
@@ -1013,276 +1009,295 @@ function AdminApp() {
                     </div>
 
                     {busyAction?.startsWith(`${character.id}:`) ? (
-                      <div className="admin-card-status">Running: {busyAction.split(":").slice(1).join(" / ")}</div>
-                    ) : null}
-
-                    {isExpanded ? (
-                      <div className="admin-card-editors">
-                        <section className="admin-editor-panel">
-                          <div className="admin-editor-panel-header">
-                            <div>
-                              <h4>Base Content</h4>
-                              <p className="admin-copy">Edit the stored content imported from the public API without touching the AI profile.</p>
-                            </div>
-                            <button className="admin-inline-save" type="button" onClick={() => void saveBaseContent(character.id)} disabled={Boolean(busyAction)}>
-                              Save Base Content
-                            </button>
-                          </div>
-                          <div className="admin-base-form-grid">
-                            <label className="admin-mini-label">
-                              Display Name
-                              <input
-                                value={baseInput.displayName}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, displayName: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Canonical Name
-                              <input
-                                value={baseInput.canonicalName}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, canonicalName: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Species
-                              <input
-                                value={baseInput.species}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, species: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Type
-                              <input
-                                value={baseInput.type}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, type: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Gender
-                              <input
-                                value={baseInput.gender}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, gender: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Status
-                              <input
-                                value={baseInput.status}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, status: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Origin
-                              <input
-                                value={baseInput.originName}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, originName: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Current Location
-                              <input
-                                value={baseInput.locationName}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, locationName: event.target.value }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label admin-wide-field">
-                              Image URL
-                              <input
-                                value={baseInput.imageUrl}
-                                onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, imageUrl: event.target.value }))}
-                              />
-                            </label>
-                          </div>
-                        </section>
-
-                        <section className="admin-editor-panel">
-                          <div className="admin-editor-panel-header">
-                            <div>
-                              <h4>AI Controls & Overrides</h4>
-                              <p className="admin-copy">Generate section by section, replace with manual content, or clear only AI-generated sections.</p>
-                            </div>
-                          </div>
-
-                          <div className="admin-actions-row admin-actions-row-dense">
-                            <button onClick={() => void enrichCharacter(character.id, "description")} disabled={Boolean(busyAction)}>
-                              Enrich Description
-                            </button>
-                            <button onClick={() => void enrichCharacter(character.id, "capacity")} disabled={Boolean(busyAction)}>
-                              Enrich Capacity
-                            </button>
-                            <button onClick={() => void enrichCharacter(character.id, "field")} disabled={Boolean(busyAction)}>
-                              Enrich Field
-                            </button>
-                            <button
-                              className="admin-danger-button"
-                              type="button"
-                              onClick={() => void resetAiContent(character.id)}
-                              disabled={Boolean(busyAction)}
-                            >
-                              Clear AI Sections
-                            </button>
-                          </div>
-
-                          {character.aiProfile?.sections?.capacityAnalysis?.attribute_reasoning ? (
-                            <div className="admin-reasoning-box">
-                              <h4>Capacity Reasoning</h4>
-                              <dl className="admin-reasoning-list">
-                                {Object.entries(character.aiProfile.sections.capacityAnalysis.attribute_reasoning).map(([key, value]) => (
-                                  typeof value === "string" && value.trim() ? (
-                                    <div key={key}>
-                                      <dt>{CAPACITY_LABELS[key] || key}</dt>
-                                      <dd>{value}</dd>
-                                    </div>
-                                  ) : null
-                                ))}
-                              </dl>
-                            </div>
-                          ) : null}
-
-                          <div className="admin-editors-stack">
-                            <label className="admin-mini-label">
-                              Manual Description PT
-                              <textarea
-                                rows={4}
-                                value={manualInputs[character.id]?.descriptionPt || ""}
-                                onChange={(event) => patchManualInput(character.id, (current) => ({
-                                  ...current,
-                                  descriptionPt: event.target.value
-                                }))}
-                              />
-                            </label>
-                            <label className="admin-mini-label">
-                              Manual Description EN
-                              <textarea
-                                rows={4}
-                                value={manualInputs[character.id]?.descriptionEn || ""}
-                                onChange={(event) => patchManualInput(character.id, (current) => ({
-                                  ...current,
-                                  descriptionEn: event.target.value
-                                }))}
-                              />
-                            </label>
-                            <button className="admin-inline-save" onClick={() => void saveManualSection(character.id, "description")} disabled={Boolean(busyAction)}>
-                              Save Manual Description
-                            </button>
-
-                            <label className="admin-mini-label">
-                              Manual Capacity JSON
-                              <textarea
-                                rows={8}
-                                value={manualInputs[character.id]?.capacity || ""}
-                                onChange={(event) => patchManualInput(character.id, (current) => ({
-                                  ...current,
-                                  capacity: event.target.value
-                                }))}
-                              />
-                            </label>
-                            <button className="admin-inline-save" onClick={() => void saveManualSection(character.id, "capacity")} disabled={Boolean(busyAction)}>
-                              Save Manual Capacity
-                            </button>
-
-                            <div className="admin-mini-label">
-                              <span>Manual Field Editor</span>
-                              <div className="admin-field-editor">
-                                {([
-                                  ["traits", "Approved Traits"],
-                                  ["weaknesses", "Approved Weaknesses"],
-                                  ["abilities", "Approved Abilities"]
-                                ] as const).map(([group, label]) => (
-                                  <div key={group} className="admin-field-group">
-                                    <div className="admin-field-group-header">
-                                      <strong>{label}</strong>
-                                      <button
-                                        type="button"
-                                        className="admin-inline-save"
-                                        onClick={() => addFieldEntry(character.id, group)}
-                                        disabled={Boolean(busyAction) || !fieldLibrary}
-                                      >
-                                        Add
-                                      </button>
-                                    </div>
-
-                                    {(manualInputs[character.id]?.field[group] || []).map((entry, index) => (
-                                      <div key={`${group}-${index}`} className="admin-field-entry">
-                                        <select
-                                          value={entry.slug}
-                                          onChange={(event) => updateFieldEntry(character.id, group, index, "slug", event.target.value)}
-                                        >
-                                          <option value="">Select {group.slice(0, -1)}</option>
-                                          {(fieldLibrary?.[group] || []).map((option) => (
-                                            <option key={option} value={option}>{option}</option>
-                                          ))}
-                                        </select>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          max="100"
-                                          value={group === "abilities" ? (entry.power_level || "") : (entry.score || "")}
-                                          onChange={(event) => updateFieldEntry(
-                                            character.id,
-                                            group,
-                                            index,
-                                            group === "abilities" ? "power_level" : "score",
-                                            event.target.value
-                                          )}
-                                          placeholder={group === "abilities" ? "Power" : "Score"}
-                                        />
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          max="1"
-                                          step="0.1"
-                                          value={entry.confidence}
-                                          onChange={(event) => updateFieldEntry(character.id, group, index, "confidence", event.target.value)}
-                                          placeholder="Confidence"
-                                        />
-                                        <textarea
-                                          rows={3}
-                                          value={entry.reason}
-                                          onChange={(event) => updateFieldEntry(character.id, group, index, "reason", event.target.value)}
-                                          placeholder="Why does this choice fit this character?"
-                                        />
-                                        <button
-                                          type="button"
-                                          className="admin-inline-save admin-inline-remove"
-                                          onClick={() => removeFieldEntry(character.id, group, index)}
-                                          disabled={Boolean(busyAction)}
-                                        >
-                                          Remove
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ))}
-
-                                <label className="admin-mini-label">
-                                  Evidence Summary
-                                  <textarea
-                                    rows={5}
-                                    value={manualInputs[character.id]?.field.evidence_summary || ""}
-                                    onChange={(event) => patchManualInput(character.id, (current) => ({
-                                      ...current,
-                                      field: {
-                                        ...current.field,
-                                        evidence_summary: event.target.value
-                                      }
-                                    }))}
-                                    placeholder="One evidence note per line"
-                                  />
-                                </label>
-                              </div>
-                            </div>
-                            <button className="admin-inline-save" onClick={() => void saveManualSection(character.id, "field")} disabled={Boolean(busyAction)}>
-                              Save Manual Field
-                            </button>
-                          </div>
-                        </section>
-                      </div>
+                      <div className="admin-card-status">Running: {busyAction?.split(":").slice(1).join(" / ")}</div>
                     ) : null}
                   </article>
                 );
               })}
             </div>
+
+            {editingCharacterId && (
+              <div className="admin-modal-overlay" onClick={closeEditor}>
+                <div className="admin-modal-container" onClick={(e) => e.stopPropagation()}>
+                  {(() => {
+                    const character = characters.find(c => c.id === editingCharacterId);
+                    if (!character) return null;
+                    const baseInput = baseInputs[character.id] || emptyBaseInput();
+                    const isBusy = busyAction?.startsWith(`${character.id}:`);
+
+                    return (
+                      <>
+                        <div className="admin-modal-header">
+                          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                            <img src={character.imageUrl || ""} alt="" style={{ width: "50px", height: "50px", borderRadius: "10px" }} />
+                            <div>
+                              <h2>Editor: {character.displayName}</h2>
+                              <p className="admin-copy">{character.id}</p>
+                            </div>
+                          </div>
+                          <button className="admin-modal-close" onClick={closeEditor}>&times;</button>
+                        </div>
+                        
+                        <div className="admin-modal-content">
+                          {isBusy && busyAction && (
+                            <div className="admin-card-status" style={{ marginBottom: "20px" }}>
+                              Running: {busyAction.split(":").slice(1).join(" / ")}
+                            </div>
+                          )}
+
+                          <div className="admin-card-editors">
+                            <section className="admin-editor-panel">
+                              <div className="admin-editor-panel-header">
+                                <div>
+                                  <h4>Base Content</h4>
+                                  <p className="admin-copy">Edit the stored content imported from the public API without touching the AI profile.</p>
+                                </div>
+                                <button className="admin-inline-save" type="button" onClick={() => void saveBaseContent(character.id)} disabled={Boolean(busyAction)}>
+                                  Save Base Content
+                                </button>
+                              </div>
+                              <div className="admin-base-form-grid">
+                                <label className="admin-mini-label">
+                                  Display Name
+                                  <input
+                                    value={baseInput.displayName}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, displayName: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Canonical Name
+                                  <input
+                                    value={baseInput.canonicalName}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, canonicalName: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Species
+                                  <input
+                                    value={baseInput.species}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, species: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Type
+                                  <input
+                                    value={baseInput.type}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, type: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Gender
+                                  <input
+                                    value={baseInput.gender}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, gender: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Status
+                                  <input
+                                    value={baseInput.status}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, status: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Origin
+                                  <input
+                                    value={baseInput.originName}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, originName: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Current Location
+                                  <input
+                                    value={baseInput.locationName}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, locationName: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label admin-wide-field">
+                                  Image URL
+                                  <input
+                                    value={baseInput.imageUrl}
+                                    onChange={(event) => patchBaseInput(character.id, (current) => ({ ...current, imageUrl: event.target.value }))}
+                                  />
+                                </label>
+                              </div>
+                            </section>
+
+                            <section className="admin-editor-panel">
+                              <div className="admin-editor-panel-header">
+                                <div>
+                                  <h4>AI Controls & Overrides</h4>
+                                  <p className="admin-copy">Generate section by section, replace with manual content, or clear only AI-generated sections.</p>
+                                </div>
+                              </div>
+
+                              <div className="admin-actions-row admin-actions-row-dense">
+                                <button onClick={() => void enrichCharacter(character.id, "description")} disabled={Boolean(busyAction)}>Enrich Description</button>
+                                <button onClick={() => void enrichCharacter(character.id, "capacity")} disabled={Boolean(busyAction)}>Enrich Capacity</button>
+                                <button onClick={() => void enrichCharacter(character.id, "field")} disabled={Boolean(busyAction)}>Enrich Field</button>
+                                <button
+                                  className="admin-danger-button"
+                                  type="button"
+                                  onClick={() => void resetAiContent(character.id)}
+                                  disabled={Boolean(busyAction)}
+                                >
+                                  Clear AI Sections
+                                </button>
+                              </div>
+
+                              {character.aiProfile?.sections?.capacityAnalysis?.attribute_reasoning ? (
+                                <div className="admin-reasoning-box">
+                                  <h4>Capacity Reasoning</h4>
+                                  <dl className="admin-reasoning-list">
+                                    {(Object.entries(character.aiProfile.sections.capacityAnalysis.attribute_reasoning)).map(([key, value]) => (
+                                      typeof value === 'string' && value.trim() ? (
+                                        <div key={key}>
+                                          <dt>{CAPACITY_LABELS[key] || key}</dt>
+                                          <dd>{value}</dd>
+                                        </div>
+                                      ) : null
+                                    ))}
+                                  </dl>
+                                </div>
+                              ) : null}
+
+                              <div className="admin-editors-stack">
+                                <label className="admin-mini-label">
+                                  Manual Description PT
+                                  <textarea
+                                    rows={4}
+                                    value={manualInputs[character.id]?.descriptionPt || ""}
+                                    onChange={(event) => patchManualInput(character.id, (current) => ({ ...current, descriptionPt: event.target.value }))}
+                                  />
+                                </label>
+                                <label className="admin-mini-label">
+                                  Manual Description EN
+                                  <textarea
+                                    rows={4}
+                                    value={manualInputs[character.id]?.descriptionEn || ""}
+                                    onChange={(event) => patchManualInput(character.id, (current) => ({ ...current, descriptionEn: event.target.value }))}
+                                  />
+                                </label>
+                                <button className="admin-inline-save" onClick={() => void saveManualSection(character.id, "description")} disabled={Boolean(busyAction)}>
+                                  Save Manual Description
+                                </button>
+
+                                <label className="admin-mini-label">
+                                  Manual Capacity JSON
+                                  <textarea
+                                    rows={8}
+                                    value={manualInputs[character.id]?.capacity || ""}
+                                    onChange={(event) => patchManualInput(character.id, (current) => ({ ...current, capacity: event.target.value }))}
+                                  />
+                                </label>
+                                <button className="admin-inline-save" onClick={() => void saveManualSection(character.id, "capacity")} disabled={Boolean(busyAction)}>
+                                  Save Manual Capacity
+                                </button>
+
+                                <div className="admin-mini-label">
+                                  <span>Manual Field Editor</span>
+                                  <div className="admin-field-editor">
+                                    {([
+                                      ["traits", "Approved Traits"],
+                                      ["weaknesses", "Approved Weaknesses"],
+                                      ["abilities", "Approved Abilities"]
+                                    ] as const).map(([group, label]) => (
+                                      <div key={group} className="admin-field-group">
+                                        <div className="admin-field-group-header">
+                                          <strong>{label}</strong>
+                                          <button
+                                            type="button"
+                                            className="admin-inline-save"
+                                            onClick={() => addFieldEntry(character.id, group)}
+                                            disabled={Boolean(busyAction) || !fieldLibrary}
+                                          >
+                                            Add
+                                          </button>
+                                        </div>
+
+                                        {(manualInputs[character.id]?.field[group] || []).map((entry, index) => (
+                                          <div key={`${group}-${index}`} className="admin-field-entry">
+                                            <select
+                                              value={entry.slug}
+                                              onChange={(event) => updateFieldEntry(character.id, group, index, "slug", event.target.value)}
+                                            >
+                                              <option value="">Select {group.slice(0, -1)}</option>
+                                              {(fieldLibrary?.[group] || []).map((option) => (
+                                                <option key={option} value={option}>{option}</option>
+                                              ))}
+                                            </select>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              max="100"
+                                              value={group === "abilities" ? (entry.power_level || "") : (entry.score || "")}
+                                              onChange={(event) => updateFieldEntry(
+                                                character.id,
+                                                group,
+                                                index,
+                                                group === "abilities" ? "power_level" : "score",
+                                                event.target.value
+                                              )}
+                                              placeholder={group === "abilities" ? "Power" : "Score"}
+                                            />
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              max="1"
+                                              step="0.1"
+                                              value={entry.confidence}
+                                              onChange={(event) => updateFieldEntry(character.id, group, index, "confidence", event.target.value)}
+                                              placeholder="Confidence"
+                                            />
+                                            <textarea
+                                              rows={3}
+                                              value={entry.reason}
+                                              onChange={(event) => updateFieldEntry(character.id, group, index, "reason", event.target.value)}
+                                              placeholder="Why does this choice fit this character?"
+                                            />
+                                            <button
+                                              type="button"
+                                              className="admin-inline-save admin-inline-remove"
+                                              onClick={() => removeFieldEntry(character.id, group, index)}
+                                              disabled={Boolean(busyAction)}
+                                            >
+                                              Remove
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ))}
+
+                                    <label className="admin-mini-label">
+                                      Evidence Summary
+                                      <textarea
+                                        rows={5}
+                                        value={manualInputs[character.id]?.field.evidence_summary || ""}
+                                        onChange={(event) => patchManualInput(character.id, (current) => ({
+                                          ...current,
+                                          field: {
+                                            ...current.field,
+                                            evidence_summary: event.target.value
+                                          }
+                                        }))}
+                                        placeholder="One evidence note per line"
+                                      />
+                                    </label>
+                                  </div>
+                                </div>
+                                <button className="admin-inline-save" onClick={() => void saveManualSection(character.id, "field")} disabled={Boolean(busyAction)}>
+                                  Save Manual Field
+                                </button>
+                              </div>
+                            </section>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: "flex", gap: "10px", marginTop: "20px", alignItems: "center" }}>
               <button 

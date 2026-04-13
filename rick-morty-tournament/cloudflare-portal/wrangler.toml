@@ -16,3 +16,7 @@ GEMINI_MODEL = "gemini-2.5-flash"
 binding = "DB"
 database_name = "rick-morty-portal"
 database_id = "eef94738-d20f-480b-bdf6-2357354654e8"
+
+[[r2_buckets]]
+binding = "CHARACTER_IMAGES"
+bucket_name = "rick-morty-character-images"

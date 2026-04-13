@@ -160,6 +160,18 @@ const App: React.FC = () => {
     locations: 'https://rickandmortyapi.com/api/location'
   };
 
+  const resolveCharacterImage = (imageUrl?: string | null) => {
+    if (!imageUrl) {
+      return 'https://via.placeholder.com/400?text=Rick+and+Morty';
+    }
+
+    if (imageUrl.startsWith('http') || imageUrl.startsWith('/')) {
+      return imageUrl;
+    }
+
+    return `${API_BASE}${imageUrl}`;
+  };
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -192,9 +204,7 @@ const App: React.FC = () => {
         id: String(item.id),
         name: item.displayName || item.canonicalName,
         species: item.species,
-        image: item.imageUrl
-          ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)
-          : 'https://via.placeholder.com/400?text=Rick+and+Morty',
+        image: resolveCharacterImage(item.imageUrl),
         status: item.status,
         likes: item.likes || 0,
         dislikes: item.dislikes || 0,
