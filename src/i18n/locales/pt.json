@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "Sincronizando dimensões...",
+    "search": "Pesquisar no catálogo...",
+    "no_results": "Nenhum resultado encontrado neste setor do catálogo.",
+    "likes": "Curtidas",
+    "dislikes": "Descurtidas",
+    "mute": "Desativar Sons",
+    "unmute": "Ativar Sons"
+  },
+  "header": {
+    "badge": "PROJETO FEITO POR FÃS • HUB DIMENSIONAL SEM FINS LUCRATIVOS",
+    "subtitle": "Explore o Multiverso: Conheça todos os personagens sincronizados pela nossa <highlight>Inteligência Interdimensional</highlight>."
+  },
+  "dashboard": {
+    "status": "STATUS",
+    "species": "ESPÉCIE"
+  },
+  "catalog": {
+    "characters": "PERSONAGENS",
+    "episodes": "EPISÓDIOS",
+    "locations": "LOCALIZAÇÕES",
+    "unknown_air_date": "DATA NÃO REGISTRADA",
+    "unknown_dimension": "DIMENSÃO NÃO REGISTRADA",
+    "unknown_type": "TIPO NÃO REGISTRADO",
+    "total_characters": "{{count}} personagens indexados",
+    "total_episodes": "{{count}} episódios indexados",
+    "total_locations": "{{count}} localizações indexadas"
+  },
+  "modal": {
+    "origin": "ORIGEM",
+    "location": "LOCALIZAÇÃO",
+    "first_seen_in": "PRIMEIRA APARIÇÃO",
+    "monitoring": "REGISTROS DE MONITORAMENTO",
+    "detail_fallback_notice": "O dossiê detalhado não respondeu. Exibindo somente os dados já disponíveis nesta camada do portal.",
+    "no_records": "Nenhum registro encontrado.",
+    "ai_analysis": "INTELIGÊNCIA INTERDIMENSIONAL",
+    "ai_summary": "Variante monitorada pela Cidadela dos Ricks. Integridade dos dados: ÓTIMA.",
+    "public_analysis": "DESCRIÇÃO",
+    "public_summary": "Perfil base sincronizado da API pública de Rick and Morty.",
+    "empty_description": "Nenhum resumo consolidado encontrado neste ciclo dimensional.",
+    "empty_capacity": "Leitura tática indisponível. A malha de avaliação ainda não consolidou atributos suficientes.",
+    "empty_field": "Assinaturas de traço, fraqueza e habilidade ainda não foram fixadas pela malha interdimensional.",
+    "air_date": "DATA DE EXIBIÇÃO",
+    "characters_count": "PERSONAGENS VINCULADOS",
+    "episode_overview": "VISÃO GERAL DO EPISÓDIO",
+    "episode_placeholder": "{{code}} foi ao ar em {{airDate}} e mantém {{characterCount}} vínculos de personagem no catálogo sincronizado.",
+    "location_type": "TIPO",
+    "residents_count": "RESIDENTES VINCULADOS",
+    "location_overview": "VISÃO GERAL DA LOCALIZAÇÃO",
+    "location_placeholder": "Esta localização está registrada como {{type}}, na dimensão {{dimension}}, com {{residentCount}} residentes vinculados no catálogo sincronizado.",
+    "capacity_analysis": "ANÁLISE DE CAPACIDADE",
+    "field_analysis": "ANÁLISE DE CAMPO",
+    "abilities": "HABILIDADES",
+    "traits": "TRAÇOS",
+    "weaknesses": "FRAQUEZAS",
+    "like_btn": "Curtir Variante",
+    "dislike_btn": "Recusar",
+    "synchronizing": "Sincronizando dossiê da Cidadela...",
+    "unknown": "DESCONHECIDO"
+  },
+  "attributes": {
+    "genialidade": "GENIALIDADE",
+    "sobrevivencia": "SOBREVIVÊNCIA",
+    "caos": "CAOS",
+    "instabilidade": "INSTABILIDADE",
+    "influencia": "INFLUÊNCIA",
+    "vitalidade": "VITALIDADE",
+    "gen_desc": "Inteligência, ciência, improviso técnico e domínio tecnológico.",
+    "surv_desc": "Resistência, defesa e capacidade de suportar ambientes hostis e dano.",
+    "chaos_desc": "Poder ofensivo, capacidade de causar estrago e desorganizar o combate.",
+    "inst_desc": "Imprevisibilidade, chance de virada e sinergia com eventos fora do padrão.",
+    "infl_desc": "Persuasão, manipulação, presença social e controle indireto do combate.",
+    "vit_desc": "Reserva estrutural de vida e integridade física do personagem."
+  },
+  "splash": {
+    "initializing": "INICIALIZANDO PORTAL..."
+  },
+  "footer": {
+    "hosted": "Sediado no Cloudflare Pages • Protótipo Interdimensional"
+  },
+  "traits_data": {
+    "panic": "Pânico",
+    "under_pressure": "Sob Pressão",
+    "under pressure": "Sob Pressão",
+    "panic_under_pressure": "Pânico Sob Pressão",
+    "panic under pressure": "Pânico Sob Pressão",
+    "resilient": "Resiliente",
+    "supportive": "Solidário",
+    "fragile": "Frágil",
+    "cowardly": "Covarde",
+    "scientific_genius": "Gênio Científico",
+    "nihilism": "Niilismo",
+    "unpredictable": "Imprevisível",
+    "loyal": "Leal",
+    "clumsy": "Desastrado",
+    "stubborn": "Teimoso"
+  }
+}
