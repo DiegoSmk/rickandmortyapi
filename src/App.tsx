@@ -111,6 +111,8 @@ const App: React.FC = () => {
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [characterInfoSlide, setCharacterInfoSlide] = useState(0);
+  const characterInfoResumeRef = useRef<number | null>(null);
+  const [characterInfoAutoPlay, setCharacterInfoAutoPlay] = useState(true);
   const [userVotes, setUserVotes] = useState<Record<string, { g?: string, s: Record<string, string> }>>(() => {
     const saved = localStorage.getItem('portal_user_votes_v2');
     if (saved) return JSON.parse(saved);
@@ -140,7 +142,38 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setCharacterInfoSlide(0);
+    setCharacterInfoAutoPlay(true);
+    if (characterInfoResumeRef.current) {
+      window.clearTimeout(characterInfoResumeRef.current);
+      characterInfoResumeRef.current = null;
+    }
   }, [selectedCharacter?.id]);
+
+  useEffect(() => {
+    if (!selectedCharacter || !characterInfoAutoPlay) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setCharacterInfoSlide((current) => (current + 1) % 3);
+    }, 3500);
+
+    return () => window.clearInterval(intervalId);
+  }, [selectedCharacter?.id, characterInfoAutoPlay]);
+
+  function selectCharacterInfoSlide(index: number) {
+    setCharacterInfoSlide(index);
+    setCharacterInfoAutoPlay(false);
+
+    if (characterInfoResumeRef.current) {
+      window.clearTimeout(characterInfoResumeRef.current);
+    }
+
+    characterInfoResumeRef.current = window.setTimeout(() => {
+      setCharacterInfoAutoPlay(true);
+      characterInfoResumeRef.current = null;
+    }, 8000);
+  }
 
   const selectLocalizedSummary = (summary: any) => {
     if (!summary) return "";
@@ -1110,7 +1143,7 @@ const App: React.FC = () => {
                                   type="button"
                                   className={`detail-carousel-dot ${index === characterInfoSlide ? 'active' : ''}`}
                                   aria-label={slide.label}
-                                  onClick={() => setCharacterInfoSlide(index)}
+                                  onClick={() => selectCharacterInfoSlide(index)}
                                 />
                               ))}
                             </div>
